@@ -1,0 +1,19 @@
+Trial 1/3 direct: starting.
+  ok: E2E p95=4985.109328855106 ms; tokens/s=844.6328539794962
+Trial 1/3 fifo-c4: starting.
+  ok: E2E p95=19814.93186875232 ms; tokens/s=209.91117094995036
+Trial 1/3 fifo-c16: starting.
+  ok: E2E p95=5546.6693416969065 ms; tokens/s=765.045202879927
+Trial 2/3 fifo-c4: starting.
+  ok: E2E p95=19925.026268453075 ms; tokens/s=209.6590072532638
+Trial 2/3 fifo-c16: starting.
+  ok: E2E p95=5337.246294349461 ms; tokens/s=779.9564813226931
+Trial 2/3 direct: starting.
+  ok: E2E p95=4919.059191353881 ms; tokens/s=847.9572825977897
+Trial 3/3 fifo-c16: starting.
+  ok: E2E p95=5519.358429498243 ms; tokens/s=767.5294660607533
+Trial 3/3 direct: starting.
+  ok: E2E p95=4961.577616698198 ms; tokens/s=843.9766943221606
+Trial 3/3 fifo-c4: starting.
+  ok: E2E p95=19839.03905829793 ms; tokens/s=209.10491471884723
+Experiment saved: /Users/samir.sarwar/inference_load/reports/final-scope-20261108T221323.184479Z/experiment

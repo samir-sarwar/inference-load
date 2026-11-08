@@ -1,0 +1,76 @@
+{
+  "base_url": "http://127.0.0.1:55602",
+  "model": "qwen3-4b",
+  "requests": 300,
+  "concurrencies": [
+    32
+  ],
+  "warmup": 32,
+  "max_tokens": 128,
+  "prompts": [
+    "Explain KV caching in two sentences.",
+    "Explain continuous batching in two sentences.",
+    "Describe the difference between prefill and decoding in two sentences.",
+    "Explain why memory bandwidth matters for LLM decoding in two sentences.",
+    "Describe how a request queue affects latency in two sentences."
+  ],
+  "seed": 0,
+  "timeout": 120,
+  "mode": "concurrency",
+  "request_rate": null,
+  "burst_size": 16,
+  "burst_interval": 1.0,
+  "max_in_flight": 128,
+  "ignore_eos": true,
+  "started_at": "2026-11-08T22:17:52.737556+00:00",
+  "load_model": "closed_loop",
+  "arrival_pattern": null,
+  "temperature": 0,
+  "percentile_method": "linear interpolation at (n - 1) * quantile",
+  "python_version": "3.12.12",
+  "httpx_version": "0.28.1",
+  "git": {
+    "commit": "f81c683f39a8ef630bcbf7bc40cb491789a5ce0b",
+    "dirty": true
+  },
+  "declared_server_config": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "image": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+    "gpu": "NVIDIA A40",
+    "min_cuda_version": "12.9",
+    "arguments": [
+      "Qwen/Qwen3-4B-Instruct-2507",
+      "--revision",
+      "cdbee75f17c01a7cc42f958dc650907174af0554",
+      "--served-model-name",
+      "qwen3-4b",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "16",
+      "--dtype",
+      "auto",
+      "--gpu-memory-utilization",
+      "0.90",
+      "--generation-config",
+      "vllm"
+    ],
+    "environment_variables": [
+      "VLLM_API_KEY",
+      "HF_HUB_DISABLE_TELEMETRY"
+    ]
+  },
+  "tpot_definition": "(client e2e_ms - client ttft_ms) / (server output_tokens - 1)",
+  "gpu_telemetry": {
+    "source": "runpod_graphql_latest_telemetry",
+    "pod_id": "2ci8di3i71oyb1",
+    "interval_s": 2.0,
+    "file": "gpu.jsonl"
+  },
+  "prompt_sha256": "d60f33b77d78bd09e3ae83db7fbee404147437f525c72f7ccb0b9ce484fc041d"
+}

@@ -1,0 +1,30 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "qwen3-4b",
+      "object": "model",
+      "created": 1794176015,
+      "owned_by": "vllm",
+      "root": "Qwen/Qwen3-4B-Instruct-2507",
+      "parent": null,
+      "max_model_len": 4096,
+      "permission": [
+        {
+          "id": "modelperm-2250912e43b64cbc972ee94540f89e65",
+          "object": "model_permission",
+          "created": 1794176015,
+          "allow_create_engine": false,
+          "allow_sampling": true,
+          "allow_logprobs": true,
+          "allow_search_indices": false,
+          "allow_view": true,
+          "allow_fine_tuning": false,
+          "organization": "*",
+          "group": null,
+          "is_blocking": false
+        }
+      ]
+    }
+  ]
+}

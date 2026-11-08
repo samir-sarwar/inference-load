@@ -1,0 +1,36 @@
+{
+  "containerDiskInGb": 40,
+  "costPerHr": 0.59,
+  "desiredStatus": "RUNNING",
+  "dockerStartCmd": [
+    "Qwen/Qwen3-4B-Instruct-2507",
+    "--revision",
+    "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "--served-model-name",
+    "qwen3-4b",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8000",
+    "--max-model-len",
+    "4096",
+    "--max-num-seqs",
+    "16",
+    "--dtype",
+    "auto",
+    "--gpu-memory-utilization",
+    "0.90",
+    "--generation-config",
+    "vllm"
+  ],
+  "gpuCount": 1,
+  "gpuId": "NVIDIA A40",
+  "id": "2ci8di3i71oyb1",
+  "imageName": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+  "name": "inference-load-lab-final",
+  "ports": [
+    "8000/http"
+  ],
+  "runtimeStatus": "running",
+  "volumeInGb": 0
+}

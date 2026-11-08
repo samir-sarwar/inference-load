@@ -1,0 +1,25 @@
+{
+  "verified_at": "2026-11-08T22:32:13.397937+00:00",
+  "source_hashes_match": true,
+  "comparison_eligible": true,
+  "consistent_improvement_observed": true,
+  "automated_tests": 84,
+  "measured_requests": 2700,
+  "warmup_requests": 288,
+  "failed_requests": 0,
+  "dropped_requests": 0,
+  "all_output_counts": 128,
+  "temporary_gateways_stopped": 6,
+  "gpu_stopped": true,
+  "credential_scan_passed": true,
+  "figure_dimensions": {
+    "gpu-utilization.png": [
+      2160,
+      630
+    ],
+    "latency-throughput.png": [
+      1800,
+      720
+    ]
+  }
+}

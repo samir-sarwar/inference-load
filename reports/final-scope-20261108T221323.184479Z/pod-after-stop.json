@@ -1,0 +1,12 @@
+{
+  "id": "2ci8di3i71oyb1",
+  "name": "inference-load-lab-final",
+  "desiredStatus": "EXITED",
+  "runtimeStatus": "stopped",
+  "gpuCount": 1,
+  "gpuId": "NVIDIA A40",
+  "costPerHr": 0.59,
+  "imageName": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+  "containerDiskInGb": 40,
+  "volumeInGb": 0
+}

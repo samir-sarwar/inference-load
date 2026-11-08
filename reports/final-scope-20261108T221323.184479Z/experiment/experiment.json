@@ -1,0 +1,251 @@
+{
+  "status": "complete",
+  "started_at": "2026-11-08T22:13:34.687412+00:00",
+  "spec": {
+    "trials": 3,
+    "baseline": "fifo-c4",
+    "candidate": "fifo-c16",
+    "variants": [
+      {
+        "name": "direct",
+        "concurrency": null
+      },
+      {
+        "name": "fifo-c4",
+        "concurrency": 4
+      },
+      {
+        "name": "fifo-c16",
+        "concurrency": 16
+      }
+    ],
+    "queue_size": 128,
+    "queue_timeout": 120,
+    "prompts_file": "data/prompts.jsonl",
+    "server_config": "configs/vllm.json",
+    "require_gpu_telemetry": true,
+    "workload": {
+      "model": "qwen3-4b",
+      "requests": 300,
+      "concurrencies": [
+        32
+      ],
+      "warmup": 32,
+      "max_tokens": 128,
+      "ignore_eos": true,
+      "seed": 0,
+      "timeout": 120
+    }
+  },
+  "git": {
+    "commit": "f81c683f39a8ef630bcbf7bc40cb491789a5ce0b",
+    "dirty": true
+  },
+  "server_config": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "image": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+    "gpu": "NVIDIA A40",
+    "min_cuda_version": "12.9",
+    "arguments": [
+      "Qwen/Qwen3-4B-Instruct-2507",
+      "--revision",
+      "cdbee75f17c01a7cc42f958dc650907174af0554",
+      "--served-model-name",
+      "qwen3-4b",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "16",
+      "--dtype",
+      "auto",
+      "--gpu-memory-utilization",
+      "0.90",
+      "--generation-config",
+      "vllm"
+    ],
+    "environment_variables": [
+      "VLLM_API_KEY",
+      "HF_HUB_DISABLE_TELEMETRY"
+    ]
+  },
+  "gpu_pod_id": "2ci8di3i71oyb1",
+  "runs": [
+    {
+      "trial": 1,
+      "position": 1,
+      "variant": "direct",
+      "started_at": "2026-11-08T22:13:36.006295+00:00",
+      "output_dir": "runs/trial-01/direct",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:13:36.748447+00:00",
+        "file": "trial-01-direct-before.prom"
+      },
+      "ended_at": "2026-11-08T22:14:27.692798+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:14:28.257475+00:00",
+        "file": "trial-01-direct-after.prom"
+      }
+    },
+    {
+      "trial": 1,
+      "position": 2,
+      "variant": "fifo-c4",
+      "started_at": "2026-11-08T22:14:28.261876+00:00",
+      "output_dir": "runs/trial-01/fifo-c4",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:14:28.475384+00:00",
+        "file": "trial-01-fifo-c4-before.prom"
+      },
+      "ended_at": "2026-11-08T22:17:51.858866+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:17:52.215113+00:00",
+        "file": "trial-01-fifo-c4-after.prom"
+      }
+    },
+    {
+      "trial": 1,
+      "position": 3,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T22:17:52.217258+00:00",
+      "output_dir": "runs/trial-01/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:17:52.429945+00:00",
+        "file": "trial-01-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T22:18:48.855041+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:18:49.210825+00:00",
+        "file": "trial-01-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "position": 1,
+      "variant": "fifo-c4",
+      "started_at": "2026-11-08T22:18:49.214114+00:00",
+      "output_dir": "runs/trial-02/fifo-c4",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:18:49.423400+00:00",
+        "file": "trial-02-fifo-c4-before.prom"
+      },
+      "ended_at": "2026-11-08T22:22:13.020440+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:22:13.407212+00:00",
+        "file": "trial-02-fifo-c4-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "position": 2,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T22:22:13.408461+00:00",
+      "output_dir": "runs/trial-02/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:22:13.628764+00:00",
+        "file": "trial-02-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T22:23:08.905736+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:23:09.274208+00:00",
+        "file": "trial-02-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "position": 3,
+      "variant": "direct",
+      "started_at": "2026-11-08T22:23:09.276532+00:00",
+      "output_dir": "runs/trial-02/direct",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:23:09.492041+00:00",
+        "file": "trial-02-direct-before.prom"
+      },
+      "ended_at": "2026-11-08T22:23:59.969923+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:24:00.337096+00:00",
+        "file": "trial-02-direct-after.prom"
+      }
+    },
+    {
+      "trial": 3,
+      "position": 1,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T22:24:00.338952+00:00",
+      "output_dir": "runs/trial-03/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:24:00.554273+00:00",
+        "file": "trial-03-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T22:24:56.974912+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:24:57.371322+00:00",
+        "file": "trial-03-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 3,
+      "position": 2,
+      "variant": "direct",
+      "started_at": "2026-11-08T22:24:57.372880+00:00",
+      "output_dir": "runs/trial-03/direct",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:24:57.596163+00:00",
+        "file": "trial-03-direct-before.prom"
+      },
+      "ended_at": "2026-11-08T22:25:48.327863+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:25:49.118598+00:00",
+        "file": "trial-03-direct-after.prom"
+      }
+    },
+    {
+      "trial": 3,
+      "position": 3,
+      "variant": "fifo-c4",
+      "started_at": "2026-11-08T22:25:49.123318+00:00",
+      "output_dir": "runs/trial-03/fifo-c4",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:25:49.334215+00:00",
+        "file": "trial-03-fifo-c4-before.prom"
+      },
+      "ended_at": "2026-11-08T22:29:13.255997+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:29:14.012974+00:00",
+        "file": "trial-03-fifo-c4-after.prom"
+      }
+    }
+  ],
+  "ended_at": "2026-11-08T22:29:14.016995+00:00"
+}

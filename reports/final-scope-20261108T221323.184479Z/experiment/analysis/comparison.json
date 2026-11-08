@@ -1,0 +1,298 @@
+{
+  "eligible_comparison": true,
+  "issues": [],
+  "baseline": "fifo-c4",
+  "candidate": "fifo-c16",
+  "primary_metric": "per-run p95 client end-to-end latency",
+  "aggregation": "median of trial metrics; each paired change compares the same trial",
+  "consistent_improvement_observed": true,
+  "paired_changes": [
+    {
+      "trial": 1,
+      "e2e_p95_reduction_percent": 72.00762849735621,
+      "throughput_increase_percent": 264.46140499227585
+    },
+    {
+      "trial": 2,
+      "e2e_p95_reduction_percent": 73.21335378714244,
+      "throughput_increase_percent": 272.0119118853413
+    },
+    {
+      "trial": 3,
+      "e2e_p95_reduction_percent": 72.17930559398894,
+      "throughput_increase_percent": 267.05472326785707
+    }
+  ],
+  "median_paired_e2e_p95_reduction_percent": 72.17930559398894,
+  "median_paired_throughput_increase_percent": 267.05472326785707,
+  "variants": {
+    "direct": {
+      "trials": 3,
+      "e2e_p95_ms": {
+        "median": 4961.577616698198,
+        "min": 4919.059191353881,
+        "max": 4985.109328855106
+      },
+      "ttft_p95_ms": {
+        "median": 2611.7576502983866,
+        "min": 2579.551810748672,
+        "max": 2650.9560566009895
+      },
+      "tpot_p50_ms": {
+        "median": 18.46427296452851,
+        "min": 18.44877230708041,
+        "max": 18.472541011853867
+      },
+      "queue_p95_ms": null,
+      "tokens_per_second": {
+        "median": 844.6328539794962,
+        "min": 843.9766943221606,
+        "max": 847.9572825977897
+      },
+      "gpu_mean_util_percent": {
+        "median": 96,
+        "min": 95,
+        "max": 96
+      }
+    },
+    "fifo-c4": {
+      "trials": 3,
+      "e2e_p95_ms": {
+        "median": 19839.03905829793,
+        "min": 19814.93186875232,
+        "max": 19925.026268453075
+      },
+      "ttft_p95_ms": {
+        "median": 17675.248200356145,
+        "min": 17640.498439601288,
+        "max": 17752.755703847288
+      },
+      "tpot_p50_ms": {
+        "median": 17.117113846439665,
+        "min": 17.11161105507869,
+        "max": 17.124501807080293
+      },
+      "queue_p95_ms": {
+        "median": 17377.595235700002,
+        "min": 17357.200729199998,
+        "max": 17453.8406476
+      },
+      "tokens_per_second": {
+        "median": 209.6590072532638,
+        "min": 209.10491471884723,
+        "max": 209.91117094995036
+      },
+      "gpu_mean_util_percent": {
+        "median": 95.8,
+        "min": 95.2,
+        "max": 96
+      }
+    },
+    "fifo-c16": {
+      "trials": 3,
+      "e2e_p95_ms": {
+        "median": 5519.358429498243,
+        "min": 5337.246294349461,
+        "max": 5546.6693416969065
+      },
+      "ttft_p95_ms": {
+        "median": 3186.2272190970543,
+        "min": 3012.4612312538375,
+        "max": 3210.942416947364
+      },
+      "tpot_p50_ms": {
+        "median": 18.394790846473118,
+        "min": 18.3926607638196,
+        "max": 18.43380003150756
+      },
+      "queue_p95_ms": {
+        "median": 2859.71280385,
+        "min": 2716.19418545,
+        "max": 2863.5268979
+      },
+      "tokens_per_second": {
+        "median": 767.5294660607533,
+        "min": 765.045202879927,
+        "max": 779.9564813226931
+      },
+      "gpu_mean_util_percent": {
+        "median": 95.5,
+        "min": 95,
+        "max": 96
+      }
+    }
+  },
+  "runs": [
+    {
+      "trial": 1,
+      "position": 1,
+      "variant": "direct",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 45.463540541997645,
+      "gpu_successful_polls": 23,
+      "gpu_unique_samples": 1,
+      "gpu_mean_util_percent": 96,
+      "output_dir": "runs/trial-01/direct",
+      "e2e_p95_ms": 4985.109328855106,
+      "ttft_p95_ms": 2650.9560566009895,
+      "tpot_p50_ms": 18.46427296452851,
+      "queue_p95_ms": null,
+      "tokens_per_second": 844.6328539794962
+    },
+    {
+      "trial": 1,
+      "position": 2,
+      "variant": "fifo-c4",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 182.934523332995,
+      "gpu_successful_polls": 91,
+      "gpu_unique_samples": 5,
+      "gpu_mean_util_percent": 95.8,
+      "output_dir": "runs/trial-01/fifo-c4",
+      "e2e_p95_ms": 19814.93186875232,
+      "ttft_p95_ms": 17640.498439601288,
+      "tpot_p50_ms": 17.124501807080293,
+      "queue_p95_ms": 17357.200729199998,
+      "tokens_per_second": 209.91117094995036
+    },
+    {
+      "trial": 1,
+      "position": 3,
+      "variant": "fifo-c16",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 50.1931125839983,
+      "gpu_successful_polls": 26,
+      "gpu_unique_samples": 1,
+      "gpu_mean_util_percent": 96,
+      "output_dir": "runs/trial-01/fifo-c16",
+      "e2e_p95_ms": 5546.6693416969065,
+      "ttft_p95_ms": 3186.2272190970543,
+      "tpot_p50_ms": 18.43380003150756,
+      "queue_p95_ms": 2863.5268979,
+      "tokens_per_second": 765.045202879927
+    },
+    {
+      "trial": 2,
+      "position": 1,
+      "variant": "fifo-c4",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 183.15454462499474,
+      "gpu_successful_polls": 92,
+      "gpu_unique_samples": 6,
+      "gpu_mean_util_percent": 96,
+      "output_dir": "runs/trial-02/fifo-c4",
+      "e2e_p95_ms": 19925.026268453075,
+      "ttft_p95_ms": 17752.755703847288,
+      "tpot_p50_ms": 17.117113846439665,
+      "queue_p95_ms": 17453.8406476,
+      "tokens_per_second": 209.6590072532638
+    },
+    {
+      "trial": 2,
+      "position": 2,
+      "variant": "fifo-c16",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 49.23351612500119,
+      "gpu_successful_polls": 25,
+      "gpu_unique_samples": 2,
+      "gpu_mean_util_percent": 95.5,
+      "output_dir": "runs/trial-02/fifo-c16",
+      "e2e_p95_ms": 5337.246294349461,
+      "ttft_p95_ms": 3012.4612312538375,
+      "tpot_p50_ms": 18.3926607638196,
+      "queue_p95_ms": 2716.19418545,
+      "tokens_per_second": 779.9564813226931
+    },
+    {
+      "trial": 2,
+      "position": 3,
+      "variant": "direct",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 45.28530008299276,
+      "gpu_successful_polls": 23,
+      "gpu_unique_samples": 1,
+      "gpu_mean_util_percent": 95,
+      "output_dir": "runs/trial-02/direct",
+      "e2e_p95_ms": 4919.059191353881,
+      "ttft_p95_ms": 2579.551810748672,
+      "tpot_p50_ms": 18.44877230708041,
+      "queue_p95_ms": null,
+      "tokens_per_second": 847.9572825977897
+    },
+    {
+      "trial": 3,
+      "position": 1,
+      "variant": "fifo-c16",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 50.03065250000509,
+      "gpu_successful_polls": 26,
+      "gpu_unique_samples": 1,
+      "gpu_mean_util_percent": 95,
+      "output_dir": "runs/trial-03/fifo-c16",
+      "e2e_p95_ms": 5519.358429498243,
+      "ttft_p95_ms": 3210.942416947364,
+      "tpot_p50_ms": 18.394790846473118,
+      "queue_p95_ms": 2859.71280385,
+      "tokens_per_second": 767.5294660607533
+    },
+    {
+      "trial": 3,
+      "position": 2,
+      "variant": "direct",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 45.498886708999635,
+      "gpu_successful_polls": 23,
+      "gpu_unique_samples": 1,
+      "gpu_mean_util_percent": 96,
+      "output_dir": "runs/trial-03/direct",
+      "e2e_p95_ms": 4961.577616698198,
+      "ttft_p95_ms": 2611.7576502983866,
+      "tpot_p50_ms": 18.472541011853867,
+      "queue_p95_ms": null,
+      "tokens_per_second": 843.9766943221606
+    },
+    {
+      "trial": 3,
+      "position": 3,
+      "variant": "fifo-c4",
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "total_output_tokens": 38400,
+      "duration_s": 183.63987308299693,
+      "gpu_successful_polls": 92,
+      "gpu_unique_samples": 5,
+      "gpu_mean_util_percent": 95.2,
+      "output_dir": "runs/trial-03/fifo-c4",
+      "e2e_p95_ms": 19839.03905829793,
+      "ttft_p95_ms": 17675.248200356145,
+      "tpot_p50_ms": 17.11161105507869,
+      "queue_p95_ms": 17377.595235700002,
+      "tokens_per_second": 209.10491471884723
+    }
+  ]
+}

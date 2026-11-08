@@ -1,0 +1,115 @@
+{
+  "status": "failed",
+  "started_at": "2026-11-08T22:05:57.472054+00:00",
+  "checks": {
+    "pytest": {
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "analysis",
+        "pytest",
+        "-v",
+        "-rA",
+        "--junitxml",
+        "/Users/samir.sarwar/inference_load/reports/final-scope-20261108T220557.471002Z/validation/junit.xml",
+        "--basetemp",
+        "/var/folders/6t/jktnvfb12h90xh3xtymwfdyw0000gn/T/inference-final-checks-yirn3wc6/pytest"
+      ],
+      "exit_code": 0,
+      "duration_s": 9.608335707998776,
+      "log": "validation/pytest.log"
+    },
+    "ruff-check": {
+      "command": [
+        "uv",
+        "run",
+        "ruff",
+        "check",
+        "."
+      ],
+      "exit_code": 0,
+      "duration_s": 0.06051829200441716,
+      "log": "validation/ruff-check.log"
+    },
+    "ruff-format": {
+      "command": [
+        "uv",
+        "run",
+        "ruff",
+        "format",
+        "--check",
+        "."
+      ],
+      "exit_code": 0,
+      "duration_s": 0.02419062500121072,
+      "log": "validation/ruff-format.log"
+    },
+    "lock-check": {
+      "command": [
+        "uv",
+        "lock",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.014273875000071712,
+      "log": "validation/lock-check.log"
+    },
+    "diff-check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.015274124998541083,
+      "log": "validation/diff-check.log"
+    },
+    "package-build": {
+      "command": [
+        "uv",
+        "build"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.03167895799560938,
+      "log": "validation/package-build.log"
+    },
+    "experiment": {
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "analysis",
+        "inference-load-lab",
+        "experiment",
+        "--config",
+        "configs/admission-experiment.json",
+        "--gpu-pod-id",
+        "2ci8di3i71oyb1",
+        "--gpu-interval",
+        "2",
+        "--deployment-info",
+        ".local/deployment.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/final-scope-20261108T220557.471002Z/experiment"
+      ],
+      "exit_code": 130,
+      "duration_s": 200.5271163340003,
+      "log": "experiment-console.log"
+    }
+  },
+  "pod_id": "2ci8di3i71oyb1",
+  "automated_totals": {
+    "tests": 81,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "error": {
+    "type": "RuntimeError",
+    "message": "experiment failed; raw results retained."
+  },
+  "ended_at": "2026-11-08T22:09:28.873994+00:00",
+  "purpose": "Diagnostic capture; intentionally interrupted before completing the comparison.",
+  "superseded_reason": "Runtime GPU readings were cached across polls. The final collector uses provider sample timestamps and excludes stale and duplicate readings."
+}

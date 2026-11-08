@@ -1,0 +1,7 @@
+{
+  "image": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+  "server_args": "Qwen/Qwen3-4B-Instruct-2507 --revision cdbee75f17c01a7cc42f958dc650907174af0554 --served-model-name qwen3-4b --host 0.0.0.0 --port 8000 --max-model-len 4096 --max-num-seqs 16 --dtype auto --gpu-memory-utilization 0.90 --generation-config vllm",
+  "base_url": "https://2ci8di3i71oyb1-8000.proxy.runpod.net"
+}

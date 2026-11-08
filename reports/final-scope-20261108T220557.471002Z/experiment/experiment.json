@@ -1,0 +1,150 @@
+{
+  "status": "interrupted",
+  "started_at": "2026-11-08T22:06:08.498750+00:00",
+  "spec": {
+    "trials": 3,
+    "baseline": "fifo-c4",
+    "candidate": "fifo-c16",
+    "variants": [
+      {
+        "name": "direct",
+        "concurrency": null
+      },
+      {
+        "name": "fifo-c4",
+        "concurrency": 4
+      },
+      {
+        "name": "fifo-c16",
+        "concurrency": 16
+      }
+    ],
+    "queue_size": 128,
+    "queue_timeout": 120,
+    "prompts_file": "data/prompts.jsonl",
+    "server_config": "configs/vllm.json",
+    "require_gpu_telemetry": true,
+    "workload": {
+      "model": "qwen3-4b",
+      "requests": 100,
+      "concurrencies": [
+        32
+      ],
+      "warmup": 32,
+      "max_tokens": 128,
+      "ignore_eos": true,
+      "seed": 0,
+      "timeout": 120
+    }
+  },
+  "git": {
+    "commit": "f81c683f39a8ef630bcbf7bc40cb491789a5ce0b",
+    "dirty": true
+  },
+  "server_config": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "image": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+    "gpu": "NVIDIA A40",
+    "min_cuda_version": "12.9",
+    "arguments": [
+      "Qwen/Qwen3-4B-Instruct-2507",
+      "--revision",
+      "cdbee75f17c01a7cc42f958dc650907174af0554",
+      "--served-model-name",
+      "qwen3-4b",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "16",
+      "--dtype",
+      "auto",
+      "--gpu-memory-utilization",
+      "0.90",
+      "--generation-config",
+      "vllm"
+    ],
+    "environment_variables": [
+      "VLLM_API_KEY",
+      "HF_HUB_DISABLE_TELEMETRY"
+    ]
+  },
+  "gpu_pod_id": "2ci8di3i71oyb1",
+  "runs": [
+    {
+      "trial": 1,
+      "position": 1,
+      "variant": "direct",
+      "started_at": "2026-11-08T22:06:09.772557+00:00",
+      "output_dir": "runs/trial-01/direct",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:06:10.552286+00:00",
+        "file": "trial-01-direct-before.prom"
+      },
+      "ended_at": "2026-11-08T22:06:32.910469+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:06:33.641625+00:00",
+        "file": "trial-01-direct-after.prom"
+      }
+    },
+    {
+      "trial": 1,
+      "position": 2,
+      "variant": "fifo-c4",
+      "started_at": "2026-11-08T22:06:33.642791+00:00",
+      "output_dir": "runs/trial-01/fifo-c4",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:06:33.855892+00:00",
+        "file": "trial-01-fifo-c4-before.prom"
+      },
+      "ended_at": "2026-11-08T22:07:55.163686+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:07:55.505914+00:00",
+        "file": "trial-01-fifo-c4-after.prom"
+      }
+    },
+    {
+      "trial": 1,
+      "position": 3,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T22:07:55.506541+00:00",
+      "output_dir": "runs/trial-01/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:07:55.718417+00:00",
+        "file": "trial-01-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T22:08:19.602943+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:08:20.189896+00:00",
+        "file": "trial-01-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "position": 1,
+      "variant": "fifo-c4",
+      "started_at": "2026-11-08T22:08:20.191955+00:00",
+      "output_dir": "runs/trial-02/fifo-c4",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T22:08:20.409156+00:00",
+        "file": "trial-02-fifo-c4-before.prom"
+      }
+    }
+  ],
+  "error_type": "CancelledError",
+  "ended_at": "2026-11-08T22:09:28.832632+00:00"
+}

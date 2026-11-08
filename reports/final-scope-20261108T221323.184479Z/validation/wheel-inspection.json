@@ -1,0 +1,9 @@
+{
+  "wheel": "inference_load_lab-0.1.0-py3-none-any.whl",
+  "module_files_verified": [
+    "inference_load_lab/analysis.py",
+    "inference_load_lab/experiment.py",
+    "inference_load_lab/telemetry.py"
+  ],
+  "entry_points": "[console_scripts]\ninference-load-lab = inference_load_lab:main\n\n"
+}

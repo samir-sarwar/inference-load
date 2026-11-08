@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": 32,
+      "mode": "concurrency",
+      "planned_requests": 300,
+      "warmup_requests": 32,
+      "warmup_concurrency": 32,
+      "recorded_requests": 300,
+      "completed_requests": 300,
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "http_status_counts": {
+        "200": 300
+      },
+      "error_types": {},
+      "duration_s": 49.23351612500119,
+      "e2e_ms": {
+        "p50": 5148.980041500181,
+        "p95": 5337.246294349461
+      },
+      "ttft_ms": {
+        "p50": 2812.243208496511,
+        "p95": 3012.4612312538375,
+        "samples": 300
+      },
+      "tpot_ms": {
+        "p50": 18.3926607638196,
+        "p95": 18.507840696466292,
+        "samples": 300
+      },
+      "missing_token_usage": 0,
+      "dispatch_lag_ms": {
+        "p50": null,
+        "p95": null,
+        "max": null,
+        "samples": 0
+      },
+      "arrival_e2e_ms": {
+        "p50": null,
+        "p95": null,
+        "samples": 0
+      },
+      "request_manager_configs": [
+        {
+          "concurrency_limit": 16,
+          "policy": "fifo",
+          "queue_capacity": 128,
+          "queue_timeout_s": 120.0,
+          "upstream_timeout_s": 120.0
+        }
+      ],
+      "queue_wait_ms": {
+        "p50": 2543.491354,
+        "p95": 2716.19418545,
+        "samples": 300
+      },
+      "total_output_tokens": 38400,
+      "output_tokens_per_second": 779.9564813226931,
+      "successful_requests_per_second": 6.09341001033354,
+      "gpu": {
+        "source": "runpod_graphql_latest_telemetry",
+        "status": "ok",
+        "interval_s": 2.0,
+        "window_duration_s": 49.23361624999961,
+        "window_started_at": "2026-11-08T22:22:19.533774+00:00",
+        "successful_polls": 25,
+        "unique_samples": 2,
+        "failed_polls": 0,
+        "outside_window_polls_excluded": 2,
+        "duplicate_polls_excluded": 21,
+        "gpus": [
+          {
+            "id": "GPU-f0af3490-1d51-b41c-6e85-9a1398f0384c",
+            "samples": 2,
+            "mean_util_percent": 95.5,
+            "max_util_percent": 96
+          }
+        ]
+      },
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T22:23:08.781853+00:00"
+}

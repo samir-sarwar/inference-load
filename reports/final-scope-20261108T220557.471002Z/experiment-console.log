@@ -1,0 +1,8 @@
+Trial 1/3 direct: starting.
+  ok: E2E p95=5146.246989901192 ms; tokens/s=760.350904135432
+Trial 1/3 fifo-c4: starting.
+  ok: E2E p95=19696.35258749695 ms; tokens/s=209.29233965905323
+Trial 1/3 fifo-c16: starting.
+  ok: E2E p95=5524.3540500032395 ms; tokens/s=713.7023147372762
+Trial 2/3 fifo-c4: starting.
+Experiment interrupted; partial results preserved.

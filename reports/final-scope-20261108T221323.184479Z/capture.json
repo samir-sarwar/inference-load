@@ -1,0 +1,133 @@
+{
+  "status": "complete",
+  "started_at": "2026-11-08T22:13:23.185787+00:00",
+  "checks": {
+    "pytest": {
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "analysis",
+        "pytest",
+        "-v",
+        "-rA",
+        "--junitxml",
+        "/Users/samir.sarwar/inference_load/reports/final-scope-20261108T221323.184479Z/validation/junit.xml",
+        "--basetemp",
+        "/var/folders/6t/jktnvfb12h90xh3xtymwfdyw0000gn/T/inference-final-checks-64axtdpk/pytest"
+      ],
+      "exit_code": 0,
+      "duration_s": 9.561655792000238,
+      "log": "validation/pytest.log"
+    },
+    "ruff-check": {
+      "command": [
+        "uv",
+        "run",
+        "ruff",
+        "check",
+        "."
+      ],
+      "exit_code": 0,
+      "duration_s": 0.05458795800223015,
+      "log": "validation/ruff-check.log"
+    },
+    "ruff-format": {
+      "command": [
+        "uv",
+        "run",
+        "ruff",
+        "format",
+        "--check",
+        "."
+      ],
+      "exit_code": 0,
+      "duration_s": 0.025418416000320576,
+      "log": "validation/ruff-format.log"
+    },
+    "lock-check": {
+      "command": [
+        "uv",
+        "lock",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.014842917000351008,
+      "log": "validation/lock-check.log"
+    },
+    "diff-check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.015102707999176346,
+      "log": "validation/diff-check.log"
+    },
+    "package-build": {
+      "command": [
+        "uv",
+        "build"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.03552833299909253,
+      "log": "validation/package-build.log"
+    },
+    "experiment": {
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "analysis",
+        "inference-load-lab",
+        "experiment",
+        "--config",
+        "configs/admission-experiment.json",
+        "--gpu-pod-id",
+        "2ci8di3i71oyb1",
+        "--gpu-interval",
+        "2",
+        "--deployment-info",
+        ".local/deployment.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/final-scope-20261108T221323.184479Z/experiment"
+      ],
+      "exit_code": 0,
+      "duration_s": 939.5151207080053,
+      "log": "experiment-console.log"
+    },
+    "analysis": {
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "analysis",
+        "inference-load-lab",
+        "analyze",
+        "/Users/samir.sarwar/inference_load/reports/final-scope-20261108T221323.184479Z/experiment"
+      ],
+      "exit_code": 0,
+      "duration_s": 13.366574792002211,
+      "log": "analysis-console.log"
+    }
+  },
+  "pod_id": "2ci8di3i71oyb1",
+  "automated_totals": {
+    "tests": 84,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "comparison": {
+    "eligible_comparison": true,
+    "consistent_improvement_observed": true,
+    "median_paired_e2e_p95_reduction_percent": 72.17930559398894,
+    "median_paired_throughput_increase_percent": 267.05472326785707
+  },
+  "source_manifest_matches_after_experiment": true,
+  "ended_at": "2026-11-08T22:29:28.431312+00:00",
+  "final_verification": "verification.json",
+  "gpu_stopped_after_validation": true,
+  "tested_code_commit": "60e973ea6c6c86f051cf730713d1c0933c72c181"
+}

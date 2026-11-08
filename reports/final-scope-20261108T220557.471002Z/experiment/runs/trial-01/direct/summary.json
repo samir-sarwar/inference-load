@@ -1,0 +1,76 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": 32,
+      "mode": "concurrency",
+      "planned_requests": 100,
+      "warmup_requests": 32,
+      "warmup_concurrency": 32,
+      "recorded_requests": 100,
+      "completed_requests": 100,
+      "successful_requests": 100,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "http_status_counts": {
+        "200": 100
+      },
+      "error_types": {},
+      "duration_s": 16.834332582999195,
+      "e2e_ms": {
+        "p50": 4740.636562502914,
+        "p95": 5146.246989901192
+      },
+      "ttft_ms": {
+        "p50": 2384.725603998959,
+        "p95": 2809.388337204291,
+        "samples": 100
+      },
+      "tpot_ms": {
+        "p50": 18.464513452773808,
+        "p95": 18.709113290162176,
+        "samples": 100
+      },
+      "missing_token_usage": 0,
+      "dispatch_lag_ms": {
+        "p50": null,
+        "p95": null,
+        "max": null,
+        "samples": 0
+      },
+      "arrival_e2e_ms": {
+        "p50": null,
+        "p95": null,
+        "samples": 0
+      },
+      "request_manager_configs": [],
+      "queue_wait_ms": {
+        "p50": null,
+        "p95": null,
+        "samples": 0
+      },
+      "total_output_tokens": 12800,
+      "output_tokens_per_second": 760.350904135432,
+      "successful_requests_per_second": 5.940241438558062,
+      "gpu": {
+        "source": "runpod_graphql_runtime",
+        "status": "ok",
+        "interval_s": 2.0,
+        "window_duration_s": 16.834414416000072,
+        "successful_polls": 9,
+        "failed_polls": 0,
+        "late_polls_excluded": 0,
+        "gpus": [
+          {
+            "id": "GPU-f0af3490-1d51-b41c-6e85-9a1398f0384c",
+            "samples": 9,
+            "mean_util_percent": 0,
+            "max_util_percent": 0
+          }
+        ]
+      },
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T22:06:32.909335+00:00"
+}
