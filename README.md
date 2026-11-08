@@ -108,6 +108,73 @@ measured load; measured request failures are recorded and the command exits
 nonzero after the sweep. Ctrl+C preserves completed requests and marks the run as
 interrupted. Requests are not automatically retried.
 
+## Arrival-rate and burst tests
+
+Concurrency mode remains the default. To schedule arrivals independently of
+response completion, use `--mode rate` or `--mode burst`.
+
+Schedule eight requests per second:
+
+```bash
+uv run --env-file .env.local inference-load-lab bench \
+  --mode rate --request-rate 8 --requests 100 --max-in-flight 128 \
+  --warmup 16 --prompts-file data/prompts.jsonl --max-tokens 128 \
+  --server-config configs/vllm.json
+```
+
+Schedule bursts of 16 requests, one second apart:
+
+```bash
+uv run --env-file .env.local inference-load-lab bench \
+  --mode burst --burst-size 16 --burst-interval 1 --requests 100 \
+  --max-in-flight 128 --warmup 16 --prompts-file data/prompts.jsonl \
+  --max-tokens 128 --server-config configs/vllm.json
+```
+
+Add `--base-url http://127.0.0.1:8080` to run either workload through a running
+FIFO gateway. `--requests` is the total number of scheduled arrivals in these
+modes; each invocation runs one arrival schedule. `--concurrency` applies only
+to concurrency mode. Warmups use a separate, unmeasured batch with up to 16
+simultaneous requests, bounded by `--max-in-flight`.
+
+The schedules are deterministic. Rate mode schedules request `i` at `i / rate`
+seconds. Burst mode schedules it at `floor(i / burst_size) * burst_interval`.
+The first arrival is at zero; a final partial burst contains only the remaining
+requests. These are fixed intervals, rather than Poisson arrivals. Prompt order
+is still balanced and shuffled with the configured seed.
+
+The driver does not wait for earlier responses before processing later arrivals.
+`--max-in-flight` bounds its outstanding requests. If this cap is reached, the
+arrival is recorded as `dropped` and is not sent or silently held in a client
+queue. Use a sufficiently high cap when evaluating server overload, and inspect
+driver drops and dispatch lag to check whether the client kept up with the
+requested schedule.
+
+Per-request records add:
+
+- `scheduled_offset_s`: the intended arrival time relative to the run start.
+- `started_offset_s`: actual request-task start; `null` for a driver drop.
+- `dispatch_lag_ms`: actual start minus scheduled arrival; `null` for a drop.
+- `arrival_e2e_ms`: scheduled arrival to completion, including driver lag and
+  client response handling. Existing `e2e_ms` and `ttft_ms` retain their
+  request-dispatch timing definitions.
+- `http_status` and structured error details, including upstream error types
+  such as `queue_full` when the server supplies one.
+
+Summaries report successful, failed, and driver-dropped requests separately,
+HTTP status counts, error types, dispatch-lag percentiles and maximum,
+arrival-to-completion percentiles, and peak driver in-flight requests.
+`completed_requests` counts sent requests that finished; `recorded_requests`
+also includes driver drops. Dropped arrivals have no fabricated zero latency.
+The command exits nonzero for either failures or drops, while retaining results.
+An HTTP `429` is a server response, distinct from a driver-capacity drop.
+
+Measured duration and throughput include the time to drain outstanding requests
+after the final arrival. `arrival_span_s` records the last scheduled offset; it
+is not a latency or the total drain time. A configured request rate is a target,
+not a guarantee that a saturated client dispatched on time. Check the recorded
+lag rather than inferring arrival accuracy from completion throughput.
+
 ## FIFO request manager
 
 The gateway queues incoming chat-completion requests in FIFO order and admits at
@@ -154,8 +221,8 @@ of four active requests is separate from the load generator's 16 simulated users
 the remaining requests wait for admission. Compare errors and throughput alongside
 latency: adding a queue can increase latency or reduce throughput. Repeat runs
 with the same workload and alternate their order before drawing conclusions.
-The current closed-loop test is a concurrency comparison; arrival-rate and burst
-tests are a later step for studying overload.
+Use the arrival-rate and burst modes to study overload at a fixed offered
+workload, and retain rejection and driver-drop counts alongside latency.
 
 Queue wait is measured at the gateway from requesting admission until a slot is
 granted. It is returned in `X-Queue-Wait-Ms`. `X-Request-Manager` carries the
@@ -222,3 +289,6 @@ Admission tests cover FIFO order, bounded capacity, timeout and cancellation
 cleanup, and stream lifetime. An integration test runs the benchmark CLI through
 a real local HTTP gateway and mock upstream, checking its concurrency limit and
 queue-wait measurements without using a GPU.
+Arrival-mode tests check that requests continue arriving while earlier responses
+are blocked, that the driver cap drops rather than queues excess arrivals, and
+that both new CLI modes work through the real local HTTP gateway.
