@@ -1,4 +1,4 @@
-"""Serve a FIFO admission gateway in front of one vLLM server."""
+"""Serve a bounded admission gateway in front of one vLLM server."""
 
 import argparse
 import asyncio
@@ -22,9 +22,11 @@ from inference_load_lab.admission import (
     AdmissionClosed,
     FifoAdmission,
     Lease,
+    LengthAwareAdmission,
     QueueFull,
     QueueTimedOut,
 )
+from inference_load_lab.cost import ESTIMATOR, estimate_cost
 
 
 @dataclass(frozen=True)
@@ -35,8 +37,16 @@ class GatewayConfig:
     queue_timeout: float = 30.0
     upstream_timeout: float = 120.0
     max_request_bytes: int = 1024 * 1024
+    policy: str = "fifo"
+    aging_seconds: float = 10.0
 
     def __post_init__(self):
+        if self.policy not in {"fifo", "length-aware"}:
+            raise ValueError("Unknown admission policy.")
+        if not math.isfinite(self.aging_seconds) or self.aging_seconds <= 0:
+            raise ValueError("Aging threshold must be finite and positive.")
+        if self.policy == "length-aware" and self.aging_seconds >= self.queue_timeout:
+            raise ValueError("Aging threshold must be below the queue timeout.")
         url = httpx.URL(self.upstream_base_url)
         if url.scheme not in ("http", "https") or not url.host:
             raise ValueError("The upstream must be an absolute HTTP or HTTPS URL.")
@@ -128,14 +138,24 @@ def create_app(
 ) -> Starlette:
     if not upstream_api_key or not gateway_api_key:
         raise ValueError("Both upstream and gateway API keys are required.")
-    gate = FifoAdmission(config.concurrency, config.max_queue)
+    gate = (
+        FifoAdmission(config.concurrency, config.max_queue)
+        if config.policy == "fifo"
+        else LengthAwareAdmission(
+            config.concurrency, config.max_queue, config.aging_seconds
+        )
+    )
     public_config = {
-        "policy": "fifo",
+        "policy": config.policy,
         "concurrency_limit": config.concurrency,
         "queue_capacity": config.max_queue,
         "queue_timeout_s": config.queue_timeout,
         "upstream_timeout_s": config.upstream_timeout,
     }
+    if config.policy == "length-aware":
+        public_config.update(
+            aging_seconds=config.aging_seconds, cost_estimator=ESTIMATOR
+        )
 
     @asynccontextmanager
     async def lifespan(app):
@@ -215,10 +235,18 @@ def create_app(
 
         resources = request.state.gateway_resources
         deadline = None
+        try:
+            estimated_cost = estimate_cost(payload)
+        except (ValueError, TypeError) as exc:
+            if config.policy == "length-aware":
+                return error(400, str(exc), "invalid_request")
+            estimated_cost = 1
 
         async def open_upstream():
             nonlocal deadline
-            resources.lease = await gate.acquire(config.queue_timeout)
+            resources.lease = await gate.acquire(
+                config.queue_timeout, estimated_cost=estimated_cost
+            )
             deadline = asyncio.get_running_loop().time() + config.upstream_timeout
             upstream_request = request.app.state.upstream.build_request(
                 "POST",
@@ -267,7 +295,11 @@ def create_app(
         headers.update(
             {
                 "X-Queue-Wait-Ms": f"{resources.lease.queue_wait_ms:.6f}",
-                "X-Admission-Policy": "fifo",
+                "X-Admission-Policy": config.policy,
+                "X-Arrival-Order": str(resources.lease.arrival_order),
+                "X-Admission-Order": str(resources.lease.admission_order),
+                "X-Aged-Promotion": str(int(resources.lease.aged_promotion)),
+                "X-Estimated-Cost": str(estimated_cost),
                 "X-Request-Manager": json.dumps(public_config, separators=(",", ":")),
             }
         )
@@ -330,6 +362,8 @@ def main(argv: list[str] | None = None):
     parser.add_argument("--queue-size", type=int, default=64)
     parser.add_argument("--queue-timeout", type=float, default=30.0)
     parser.add_argument("--upstream-timeout", type=float, default=120.0)
+    parser.add_argument("--policy", choices=["fifo", "length-aware"], default="fifo")
+    parser.add_argument("--aging-seconds", type=float, default=10.0)
     args = parser.parse_args(argv)
     upstream_key = os.environ.get("VLLM_API_KEY", "")
     gateway_key = os.environ.get("GATEWAY_API_KEY", upstream_key)
@@ -346,6 +380,8 @@ def main(argv: list[str] | None = None):
             args.queue_size,
             args.queue_timeout,
             args.upstream_timeout,
+            policy=args.policy,
+            aging_seconds=args.aging_seconds,
         )
         url = httpx.URL(config.upstream_base_url)
         upstream_port = url.port or (443 if url.scheme == "https" else 80)

@@ -103,6 +103,67 @@ async def test_streaming_client_works_and_upstream_uses_its_own_key():
 
 
 @pytest.mark.asyncio
+async def test_length_aware_gateway_reorders_waiters_and_reports_actual_orders():
+    release, entered = asyncio.Event(), asyncio.Event()
+    calls = []
+
+    def respond(request):
+        name = json.loads(request.content)["messages"][0]["content"]
+        calls.append(name)
+        if name == "active":
+            entered.set()
+            return httpx.Response(200, stream=HeldStream(release))
+        return httpx.Response(200, content=SSE)
+
+    async with gateway(
+        respond, policy="length-aware", aging_seconds=5, queue_timeout=10, concurrency=1
+    ) as (app, client):
+
+        def body(name, budget):
+            return {
+                **BODY,
+                "messages": [{"role": "user", "content": name}],
+                "max_tokens": budget,
+            }
+
+        active = asyncio.create_task(
+            client.post("/v1/chat/completions", json=body("active", 512))
+        )
+        await asyncio.wait_for(entered.wait(), 2)
+        long = asyncio.create_task(
+            client.post("/v1/chat/completions", json=body("long", 512))
+        )
+        await wait_queued(app, 1)
+        short = asyncio.create_task(
+            client.post("/v1/chat/completions", json=body("short", 32))
+        )
+        try:
+            await wait_queued(app, 2)
+        finally:
+            release.set()
+        _, long_response, short_response = await asyncio.gather(active, long, short)
+        assert calls == ["active", "short", "long"]
+        assert short_response.headers["x-admission-order"] == "2"
+        assert short_response.headers["x-arrival-order"] == "3"
+        assert long_response.headers["x-admission-policy"] == "length-aware"
+        assert (
+            json.loads(long_response.headers["x-request-manager"])["aging_seconds"] == 5
+        )
+        assert (await app.state.gate.snapshot())["active_requests"] == 0
+
+
+@pytest.mark.asyncio
+async def test_length_aware_rejects_unscorable_payload_before_admission():
+    def respond(request):
+        pytest.fail("Invalid length-aware request must not reach the model.")
+
+    async with gateway(respond, policy="length-aware") as (app, client):
+        response = await client.post("/v1/chat/completions", json={"stream": True})
+        assert response.status_code == 400
+        assert (await app.state.gate.snapshot())["active_requests"] == 0
+
+
+@pytest.mark.asyncio
 async def test_slot_is_held_for_entire_stream_and_overflow_is_rejected():
     release = asyncio.Event()
     entered = asyncio.Event()

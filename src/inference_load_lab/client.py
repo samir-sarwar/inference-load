@@ -75,6 +75,17 @@ async def generate(
         request_manager = json.loads(raw_manager) if raw_manager is not None else None
         if request_manager is not None and not isinstance(request_manager, dict):
             raise RuntimeError("Invalid request-manager configuration header.")
+        admission = {}
+        for field in ["arrival_order", "admission_order", "estimated_cost"]:
+            raw = response.headers.get("x-" + field.replace("_", "-"))
+            value = int(raw) if raw is not None else None
+            if value is not None and value < 1:
+                raise RuntimeError("Invalid admission metadata header.")
+            admission[field] = value
+        aged = response.headers.get("x-aged-promotion")
+        if aged not in {None, "0", "1"}:
+            raise RuntimeError("Invalid aging metadata header.")
+        admission["aged_promotion"] = None if aged is None else aged == "1"
 
         async for line in response.aiter_lines():
             if not line.startswith("data:"):
@@ -133,6 +144,7 @@ async def generate(
         "queue_wait_ms": queue_wait_ms,
         "request_manager": request_manager,
         "finish_reason": finish_reason,
+        **admission,
     }
 
 
