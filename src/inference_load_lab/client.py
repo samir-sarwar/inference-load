@@ -34,6 +34,7 @@ async def generate(
     prompt: str,
     api_key: str,
     max_tokens: int = 128,
+    ignore_eos: bool = False,
     on_text: Callable[[str], None] | None = None,
 ) -> dict:
     """Return client-observed timings and the server's output-token count."""
@@ -45,6 +46,8 @@ async def generate(
         "stream": True,
         "stream_options": {"include_usage": True},
     }
+    if ignore_eos:
+        payload["ignore_eos"] = True
     started = perf_counter()
     first_content_at = None
     parts = []
@@ -104,6 +107,12 @@ async def generate(
             "The stream ended before [DONE]; the request was incomplete."
         )
 
+    output_tokens = usage.get("completion_tokens")
+    if output_tokens is not None and (
+        type(output_tokens) is not int or output_tokens < 0
+    ):
+        raise RuntimeError("Invalid server completion-token count.")
+
     return {
         "model": model,
         "text": "".join(parts),
@@ -113,7 +122,14 @@ async def generate(
             else None
         ),
         "e2e_ms": (finished - started) * 1000,
-        "output_tokens": usage.get("completion_tokens"),
+        "tpot_ms": (
+            (finished - first_content_at) * 1000 / (output_tokens - 1)
+            if first_content_at is not None
+            and output_tokens is not None
+            and output_tokens > 1
+            else None
+        ),
+        "output_tokens": output_tokens,
         "queue_wait_ms": queue_wait_ms,
         "request_manager": request_manager,
         "finish_reason": finish_reason,

@@ -40,6 +40,7 @@ class BenchmarkConfig:
     burst_size: int = 16
     burst_interval: float = 1.0
     max_in_flight: int = 128
+    ignore_eos: bool = False
 
     def __post_init__(self):
         if self.requests < 1 or self.max_tokens < 1:
@@ -93,6 +94,7 @@ def summarize(records: list[dict], duration: float) -> dict:
     successful = [r for r in records if r["status"] == "ok"]
     latencies = [r["e2e_ms"] for r in successful]
     ttfts = [r["ttft_ms"] for r in successful if r["ttft_ms"] is not None]
+    tpots = [r["tpot_ms"] for r in successful if r.get("tpot_ms") is not None]
     queue_waits = [
         r["queue_wait_ms"] for r in successful if r.get("queue_wait_ms") is not None
     ]
@@ -144,6 +146,11 @@ def summarize(records: list[dict], duration: float) -> dict:
             "p95": percentile(ttfts, 0.95),
             "samples": len(ttfts),
         },
+        "tpot_ms": {
+            "p50": percentile(tpots, 0.5),
+            "p95": percentile(tpots, 0.95),
+            "samples": len(tpots),
+        },
         "missing_token_usage": missing_usage,
         "dispatch_lag_ms": {
             "p50": percentile(dispatch_lags, 0.5),
@@ -179,6 +186,7 @@ def request_record(concurrency, phase, request_id, prompt_index, scheduled_offse
         "status": "error",
         "http_status": None,
         "ttft_ms": None,
+        "tpot_ms": None,
         "queue_wait_ms": None,
         "request_manager": None,
         "output_tokens": None,
@@ -220,10 +228,12 @@ async def perform_request(
                 prompt=config.prompts[prompt_index],
                 api_key=api_key,
                 max_tokens=config.max_tokens,
+                ignore_eos=config.ignore_eos,
             )
         record.update(
             status="ok",
             http_status=200,
+            tpot_ms=result.get("tpot_ms"),
             queue_wait_ms=result.get("queue_wait_ms"),
             request_manager=result.get("request_manager"),
             **{
@@ -374,6 +384,7 @@ async def run_suite(
         httpx_version=httpx.__version__,
         git=git_state(),
         declared_server_config=server_config,
+        tpot_definition="(client e2e_ms - client ttft_ms) / (server output_tokens - 1)",
         prompt_sha256=hashlib.sha256(
             json.dumps(config.prompts, ensure_ascii=False).encode()
         ).hexdigest(),
@@ -549,6 +560,11 @@ def main(argv: list[str] | None = None) -> None:
     )
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument(
+        "--ignore-eos",
+        action="store_true",
+        help="vLLM extension: continue to the token limit for a fixed-length decode workload.",
+    )
+    parser.add_argument(
         "--timeout",
         type=float,
         default=120.0,
@@ -620,6 +636,7 @@ def main(argv: list[str] | None = None) -> None:
             if args.burst_interval is not None
             else 1.0,
             max_in_flight=args.max_in_flight if args.max_in_flight is not None else 128,
+            ignore_eos=args.ignore_eos,
         )
         server_config = (
             json.loads(args.server_config.read_text()) if args.server_config else None
@@ -650,6 +667,7 @@ def main(argv: list[str] | None = None) -> None:
         print(
             f"  OK={summary['successful_requests']} failed={summary['failed_requests']} dropped={summary['dropped_requests']} | "
             f"TTFT p50/p95={number(summary['ttft_ms']['p50'])}/{number(summary['ttft_ms']['p95'])} ms | "
+            f"TPOT p50/p95={number(summary['tpot_ms']['p50'])}/{number(summary['tpot_ms']['p95'])} ms | "
             f"E2E p50/p95={number(summary['e2e_ms']['p50'])}/{number(summary['e2e_ms']['p95'])} ms | "
             f"queue p50/p95={number(summary['queue_wait_ms']['p50'])}/{number(summary['queue_wait_ms']['p95'])} ms | "
             f"output tokens/s={number(summary['output_tokens_per_second'])}",
