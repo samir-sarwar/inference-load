@@ -1,9 +1,11 @@
 """Run a closed-loop concurrency sweep against a streaming vLLM server."""
 
+import argparse
 import asyncio
 import hashlib
 import json
 import math
+import os
 import platform
 import random
 import subprocess
@@ -294,3 +296,160 @@ async def run_suite(
             report["ended_at"] = utc_now()
             save_report()
     return report
+
+
+def load_prompts(path: Path) -> tuple[str, ...]:
+    prompts = []
+    for number, line in enumerate(path.read_text().splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            value = json.loads(line)
+        except ValueError as exc:
+            raise ValueError(f"{path}:{number}: invalid JSON.") from exc
+        prompt = value.get("prompt") if isinstance(value, dict) else value
+        if not isinstance(prompt, str) or not prompt.strip():
+            raise ValueError(
+                f'{path}:{number}: expected a nonempty string or {{"prompt": "..."}}.'
+            )
+        prompts.append(prompt)
+    if not prompts:
+        raise ValueError(f"{path}: no prompts found.")
+    return tuple(prompts)
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        prog="inference-load-lab bench", description=__doc__
+    )
+    parser.add_argument("--base-url", default=os.environ.get("VLLM_BASE_URL"))
+    parser.add_argument("--model", default=os.environ.get("VLLM_MODEL", "qwen3-4b"))
+    parser.add_argument(
+        "--requests",
+        type=int,
+        default=100,
+        help="Measured requests per concurrency level.",
+    )
+    parser.add_argument("--concurrency", type=int, nargs="+", default=[1, 2, 4, 8, 16])
+    parser.add_argument(
+        "--warmup",
+        type=int,
+        default=5,
+        help="Unmeasured requests per level; 0 disables warmup.",
+    )
+    parser.add_argument("--max-tokens", type=int, default=128)
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=120.0,
+        help="Total timeout per request in seconds.",
+    )
+    parser.add_argument("--seed", type=int, default=0)
+    prompts = parser.add_mutually_exclusive_group()
+    prompts.add_argument(
+        "--prompt", action="append", help="Repeat to supply multiple prompts."
+    )
+    prompts.add_argument(
+        "--prompts-file",
+        type=Path,
+        help="JSONL strings or objects with a prompt field.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        help="New directory; existing directories are never overwritten.",
+    )
+    parser.add_argument(
+        "--server-config",
+        type=Path,
+        help="Optional declared server settings to record with the run.",
+    )
+    args = parser.parse_args(argv)
+    if not args.base_url:
+        parser.error("Set VLLM_BASE_URL or pass --base-url.")
+    api_key = os.environ.get("VLLM_API_KEY")
+    if not api_key:
+        parser.error("Set VLLM_API_KEY in your environment or .env.local.")
+    try:
+        config = BenchmarkConfig(
+            base_url=args.base_url.rstrip("/"),
+            model=args.model,
+            requests=args.requests,
+            concurrencies=tuple(args.concurrency),
+            warmup=args.warmup,
+            max_tokens=args.max_tokens,
+            prompts=load_prompts(args.prompts_file)
+            if args.prompts_file
+            else tuple(args.prompt or [DEFAULT_PROMPT]),
+            seed=args.seed,
+            timeout=args.timeout,
+        )
+        server_config = (
+            json.loads(args.server_config.read_text()) if args.server_config else None
+        )
+    except (OSError, ValueError, httpx.InvalidURL) as exc:
+        parser.error(str(exc))
+    output_dir = args.output_dir or Path("results") / datetime.now(UTC).strftime(
+        "%Y%m%dT%H%M%S.%fZ"
+    )
+
+    def display(event, summary):
+        if event == "start":
+            print(
+                f"Concurrency {summary['concurrency']}: {config.warmup} warmup + {config.requests} measured requests",
+                flush=True,
+            )
+            return
+
+        def number(value):
+            return f"{value:.2f}" if value is not None else "n/a"
+
+        print(
+            f"  OK={summary['successful_requests']} failed={summary['failed_requests']} | "
+            f"TTFT p50/p95={number(summary['ttft_ms']['p50'])}/{number(summary['ttft_ms']['p95'])} ms | "
+            f"E2E p50/p95={number(summary['e2e_ms']['p50'])}/{number(summary['e2e_ms']['p95'])} ms | "
+            f"output tokens/s={number(summary['output_tokens_per_second'])}",
+            flush=True,
+        )
+
+    async def run():
+        maximum = max(config.concurrencies)
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(config.timeout, connect=min(10.0, config.timeout)),
+            limits=httpx.Limits(
+                max_connections=maximum,
+                max_keepalive_connections=maximum,
+                keepalive_expiry=60.0,
+            ),
+        ) as client:
+            return await run_suite(
+                client,
+                config,
+                api_key,
+                output_dir,
+                server_config=server_config,
+                progress=display,
+            )
+
+    try:
+        report = asyncio.run(run())
+    except FileExistsError:
+        parser.exit(
+            1,
+            f"Output directory already exists: {output_dir}. Choose a new --output-dir.\n",
+        )
+    except (OSError, RuntimeError, ValueError) as exc:
+        parser.exit(1, f"Benchmark failed: {str(exc).replace(api_key, '[redacted]')}\n")
+    except KeyboardInterrupt:
+        parser.exit(
+            130, f"\nInterrupted. Saved completed requests to {output_dir.resolve()}\n"
+        )
+    print(f"Results: {output_dir.resolve()}")
+    if report["status"] != "ok":
+        parser.exit(
+            1, "Some requests failed. Inspect summary.json and requests.jsonl.\n"
+        )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,5 @@
+{"prompt":"Explain KV caching in two sentences."}
+{"prompt":"Explain continuous batching in two sentences."}
+{"prompt":"Describe the difference between prefill and decoding in two sentences."}
+{"prompt":"Explain why memory bandwidth matters for LLM decoding in two sentences."}
+{"prompt":"Describe how a request queue affects latency in two sentences."}

@@ -92,7 +92,10 @@ async def generate(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        epilog="For load testing, run: inference-load-lab bench --help",
+    )
     parser.add_argument("--base-url", default=os.environ.get("VLLM_BASE_URL"))
     parser.add_argument("--model", default=os.environ.get("VLLM_MODEL", "qwen3-4b"))
     parser.add_argument("--prompt", default="Explain KV caching in two sentences.")
