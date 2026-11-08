@@ -1,6 +1,12 @@
 def main() -> None:
     import sys
 
+    if sys.argv[1:2] == ["experiment"]:
+        from inference_load_lab.experiment import main as experiment_main
+
+        experiment_main(sys.argv[2:])
+        return
+
     if sys.argv[1:2] == ["serve"]:
         from inference_load_lab.gateway import main as gateway_main
 

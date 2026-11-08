@@ -1,0 +1,25 @@
+{
+  "trials": 3,
+  "baseline": "fifo-c4",
+  "candidate": "fifo-c16",
+  "variants": [
+    {"name": "direct", "concurrency": null},
+    {"name": "fifo-c4", "concurrency": 4},
+    {"name": "fifo-c16", "concurrency": 16}
+  ],
+  "queue_size": 128,
+  "queue_timeout": 120,
+  "prompts_file": "data/prompts.jsonl",
+  "server_config": "configs/vllm.json",
+  "require_gpu_telemetry": true,
+  "workload": {
+    "model": "qwen3-4b",
+    "requests": 300,
+    "concurrencies": [32],
+    "warmup": 32,
+    "max_tokens": 128,
+    "ignore_eos": true,
+    "seed": 0,
+    "timeout": 120
+  }
+}
