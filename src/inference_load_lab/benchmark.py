@@ -70,7 +70,15 @@ def summarize(records: list[dict], duration: float) -> dict:
     successful = [r for r in records if r["status"] == "ok"]
     latencies = [r["e2e_ms"] for r in successful]
     ttfts = [r["ttft_ms"] for r in successful if r["ttft_ms"] is not None]
+    queue_waits = [
+        r["queue_wait_ms"] for r in successful if r.get("queue_wait_ms") is not None
+    ]
     missing_usage = sum(r["output_tokens"] is None for r in successful)
+    managers = {
+        json.dumps(r["request_manager"], sort_keys=True)
+        for r in successful
+        if r.get("request_manager") is not None
+    }
     tokens = (
         sum(r["output_tokens"] for r in successful)
         if successful and not missing_usage
@@ -91,6 +99,12 @@ def summarize(records: list[dict], duration: float) -> dict:
             "samples": len(ttfts),
         },
         "missing_token_usage": missing_usage,
+        "request_manager_configs": [json.loads(value) for value in sorted(managers)],
+        "queue_wait_ms": {
+            "p50": percentile(queue_waits, 0.5),
+            "p95": percentile(queue_waits, 0.95),
+            "samples": len(queue_waits),
+        },
         "total_output_tokens": tokens,
         "output_tokens_per_second": tokens / duration if tokens is not None else None,
         "successful_requests_per_second": len(successful) / duration,
@@ -121,6 +135,8 @@ async def run_batch(
                 "started_offset_s": request_started - started,
                 "status": "error",
                 "ttft_ms": None,
+                "queue_wait_ms": None,
+                "request_manager": None,
                 "output_tokens": None,
                 "finish_reason": None,
                 "error": None,
@@ -137,6 +153,8 @@ async def run_batch(
                     )
                 record.update(
                     status="ok",
+                    queue_wait_ms=result.get("queue_wait_ms"),
+                    request_manager=result.get("request_manager"),
                     **{
                         k: result[k]
                         for k in ("ttft_ms", "e2e_ms", "output_tokens", "finish_reason")
@@ -408,6 +426,7 @@ def main(argv: list[str] | None = None) -> None:
             f"  OK={summary['successful_requests']} failed={summary['failed_requests']} | "
             f"TTFT p50/p95={number(summary['ttft_ms']['p50'])}/{number(summary['ttft_ms']['p95'])} ms | "
             f"E2E p50/p95={number(summary['e2e_ms']['p50'])}/{number(summary['e2e_ms']['p95'])} ms | "
+            f"queue p50/p95={number(summary['queue_wait_ms']['p50'])}/{number(summary['queue_wait_ms']['p95'])} ms | "
             f"output tokens/s={number(summary['output_tokens_per_second'])}",
             flush=True,
         )

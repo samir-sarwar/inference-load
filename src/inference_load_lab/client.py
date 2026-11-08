@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import json
+import math
 import os
 from collections.abc import Callable
 from time import perf_counter
@@ -46,6 +47,17 @@ async def generate(
             await response.aread()
             raise RuntimeError(f"HTTP {response.status_code}: {response.text}")
 
+        raw_queue_wait = response.headers.get("x-queue-wait-ms")
+        queue_wait_ms = float(raw_queue_wait) if raw_queue_wait is not None else None
+        if queue_wait_ms is not None and (
+            not math.isfinite(queue_wait_ms) or queue_wait_ms < 0
+        ):
+            raise RuntimeError("Invalid gateway queue-wait measurement.")
+        raw_manager = response.headers.get("x-request-manager")
+        request_manager = json.loads(raw_manager) if raw_manager is not None else None
+        if request_manager is not None and not isinstance(request_manager, dict):
+            raise RuntimeError("Invalid request-manager configuration header.")
+
         async for line in response.aiter_lines():
             if not line.startswith("data:"):
                 continue
@@ -87,6 +99,8 @@ async def generate(
         ),
         "e2e_ms": (finished - started) * 1000,
         "output_tokens": usage.get("completion_tokens"),
+        "queue_wait_ms": queue_wait_ms,
+        "request_manager": request_manager,
         "finish_reason": finish_reason,
     }
 
@@ -94,7 +108,7 @@ async def generate(
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        epilog="For load testing, run: inference-load-lab bench --help",
+        epilog="Other commands: inference-load-lab bench --help; inference-load-lab serve --help",
     )
     parser.add_argument("--base-url", default=os.environ.get("VLLM_BASE_URL"))
     parser.add_argument("--model", default=os.environ.get("VLLM_MODEL", "qwen3-4b"))

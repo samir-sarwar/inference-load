@@ -282,6 +282,21 @@ def test_prompt_file_supports_strings_and_prompt_objects(tmp_path):
         load_prompts(path)
 
 
+def test_queue_wait_summary_distinguishes_measured_and_unavailable_values():
+    records = [
+        {
+            "status": "ok",
+            "e2e_ms": 100,
+            "ttft_ms": 20,
+            "output_tokens": 3,
+            "queue_wait_ms": value,
+        }
+        for value in [5, 15, None]
+    ]
+    result = summarize(records, duration=1)
+    assert result["queue_wait_ms"] == {"p50": 10, "p95": 14.5, "samples": 2}
+
+
 @pytest.mark.parametrize(
     "settings",
     [

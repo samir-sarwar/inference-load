@@ -48,6 +48,26 @@ async def test_stream_uses_content_for_ttft_and_server_usage_for_tokens(monkeypa
     assert result["e2e_ms"] == 5000
     assert result["output_tokens"] == 7
     assert result["finish_reason"] == "stop"
+    assert result["queue_wait_ms"] is None
+
+
+@pytest.mark.asyncio
+async def test_reads_gateway_queue_wait_header():
+    body = 'data: {"choices":[{"delta":{"content":"hi"}}]}\n\ndata: [DONE]\n\n'
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(
+            200, text=body, headers={"X-Queue-Wait-Ms": "12.5"}
+        )
+    )
+    async with httpx.AsyncClient(transport=transport) as client:
+        result = await generate(
+            client,
+            base_url="https://example.test",
+            model="qwen3-4b",
+            prompt="hello",
+            api_key="test-key",
+        )
+    assert result["queue_wait_ms"] == 12.5
 
 
 @pytest.mark.asyncio
