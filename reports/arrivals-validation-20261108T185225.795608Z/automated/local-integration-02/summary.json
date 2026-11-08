@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": null,
+      "mode": "rate",
+      "planned_requests": 4,
+      "warmup_requests": 0,
+      "warmup_concurrency": 16,
+      "arrival_span_s": 0.03,
+      "peak_in_flight": 4,
+      "recorded_requests": 4,
+      "completed_requests": 4,
+      "successful_requests": 4,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "http_status_counts": {
+        "200": 4
+      },
+      "error_types": {},
+      "duration_s": 0.1621522499990533,
+      "e2e_ms": {
+        "p50": 89.9401044989645,
+        "p95": 126.62800184916703
+      },
+      "ttft_ms": {
+        "p50": 55.47927099905792,
+        "p95": 92.21023745230922,
+        "samples": 4
+      },
+      "missing_token_usage": 0,
+      "dispatch_lag_ms": {
+        "p50": 0.7228754962852694,
+        "p95": 2.975466995587339,
+        "max": 3.3029169955989346,
+        "samples": 4
+      },
+      "arrival_e2e_ms": {
+        "p50": 92.08741700000246,
+        "p95": 128.06351884827018,
+        "samples": 4
+      },
+      "request_manager_configs": [
+        {
+          "concurrency_limit": 1,
+          "policy": "fifo",
+          "queue_capacity": 8,
+          "queue_timeout_s": 30.0,
+          "upstream_timeout_s": 120.0
+        }
+      ],
+      "queue_wait_ms": {
+        "p50": 52.074,
+        "p95": 89.3938713,
+        "samples": 4
+      },
+      "total_output_tokens": 8,
+      "output_tokens_per_second": 49.33634901795508,
+      "successful_requests_per_second": 24.66817450897754,
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T18:52:29.860230+00:00"
+}

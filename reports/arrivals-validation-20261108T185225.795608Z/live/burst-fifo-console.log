@@ -1,0 +1,5 @@
+Bursts of 16 every 1s (driver cap 64): 8 warmup + 32 measured requests
+  OK=12 failed=20 dropped=0 | TTFT p50/p95=1376.02/2568.24 ms | E2E p50/p95=2348.88/3574.42 ms | queue p50/p95=1185.07/2386.93 ms | output tokens/s=195.75
+  dispatch lag p95=23.80 ms | arrival-to-completion p95=3591.59 ms | peak in-flight=24
+Results: /Users/samir.sarwar/inference_load/reports/arrivals-validation-20261108T185225.795608Z/live/burst-fifo
+Some requests failed or were dropped. Inspect summary.json and requests.jsonl.

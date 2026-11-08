@@ -1,0 +1,66 @@
+{
+  "base_url": "http://127.0.0.1:52962",
+  "model": "qwen3-4b",
+  "requests": 24,
+  "concurrencies": [],
+  "warmup": 8,
+  "max_tokens": 64,
+  "prompts": [
+    "Explain KV caching in two sentences.",
+    "Explain continuous batching in two sentences.",
+    "Describe the difference between prefill and decoding in two sentences.",
+    "Explain why memory bandwidth matters for LLM decoding in two sentences.",
+    "Describe how a request queue affects latency in two sentences."
+  ],
+  "seed": 0,
+  "timeout": 120.0,
+  "mode": "rate",
+  "request_rate": 4.0,
+  "burst_size": 16,
+  "burst_interval": 1.0,
+  "max_in_flight": 32,
+  "started_at": "2026-11-08T18:52:47.731818+00:00",
+  "load_model": "open_loop",
+  "arrival_pattern": "rate",
+  "temperature": 0,
+  "percentile_method": "linear interpolation at (n - 1) * quantile",
+  "python_version": "3.12.12",
+  "httpx_version": "0.28.1",
+  "git": {
+    "commit": "90c7d2c0539a50b497249c09ce7e8ba067da6238",
+    "dirty": true
+  },
+  "declared_server_config": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "image": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+    "gpu": "NVIDIA A40",
+    "min_cuda_version": "12.9",
+    "arguments": [
+      "Qwen/Qwen3-4B-Instruct-2507",
+      "--revision",
+      "cdbee75f17c01a7cc42f958dc650907174af0554",
+      "--served-model-name",
+      "qwen3-4b",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "16",
+      "--dtype",
+      "auto",
+      "--gpu-memory-utilization",
+      "0.90",
+      "--generation-config",
+      "vllm"
+    ],
+    "environment_variables": [
+      "VLLM_API_KEY",
+      "HF_HUB_DISABLE_TELEMETRY"
+    ]
+  },
+  "prompt_sha256": "d60f33b77d78bd09e3ae83db7fbee404147437f525c72f7ccb0b9ce484fc041d"
+}

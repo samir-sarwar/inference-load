@@ -1,0 +1,15 @@
+{
+  "python": "3.12.12 (main, Oct  9 2025, 11:07:00) [Clang 17.0.0 (clang-1700.6.3.2)]",
+  "system": "Darwin",
+  "release": "24.6.0",
+  "machine": "arm64",
+  "packages": {
+    "httpx": "0.28.1",
+    "anyio": "4.16.0",
+    "starlette": "1.10.0",
+    "uvicorn": "0.54.0",
+    "pytest": "9.2.0",
+    "pytest-asyncio": "1.4.1.post1",
+    "ruff": "0.17.4"
+  }
+}

@@ -1,0 +1,87 @@
+INFO:     Started server process [24404]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:52962 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52965 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52965 - "GET /stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53000 - "GET /stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53001 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53004 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53002 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53003 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53005 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53007 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53006 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53008 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53013 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53014 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53015 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53016 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53018 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53017 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53019 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53020 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53021 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53022 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53023 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53024 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53025 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53026 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53027 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53028 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53029 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53031 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53030 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53032 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53033 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53034 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53035 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53036 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53038 - "GET /stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53039 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53040 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53041 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53042 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53043 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53045 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53046 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53044 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53059 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53060 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53061 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53062 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53048 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53050 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53047 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53049 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53059 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53060 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53061 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53062 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53059 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53060 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53061 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53062 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53059 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53060 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53061 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53062 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53059 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53060 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53061 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53059 - "POST /v1/chat/completions HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:53051 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53052 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53053 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53054 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53055 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53056 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53057 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53058 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53064 - "GET /stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53105 - "GET /stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53105 - "GET /stats HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [24404]

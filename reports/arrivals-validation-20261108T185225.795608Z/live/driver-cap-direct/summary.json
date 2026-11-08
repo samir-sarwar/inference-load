@@ -1,0 +1,58 @@
+{
+  "status": "failed",
+  "runs": [
+    {
+      "concurrency": null,
+      "mode": "burst",
+      "planned_requests": 16,
+      "warmup_requests": 2,
+      "warmup_concurrency": 2,
+      "arrival_span_s": 0.0,
+      "peak_in_flight": 2,
+      "recorded_requests": 16,
+      "completed_requests": 2,
+      "successful_requests": 2,
+      "failed_requests": 0,
+      "dropped_requests": 14,
+      "http_status_counts": {
+        "200": 2
+      },
+      "error_types": {
+        "ClientCapacityExceeded": 14
+      },
+      "duration_s": 1.297823499997321,
+      "e2e_ms": {
+        "p50": 1227.9373750025115,
+        "p95": 1289.1550744021515
+      },
+      "ttft_ms": {
+        "p50": 236.88602099718992,
+        "p95": 245.42381519786431,
+        "samples": 2
+      },
+      "missing_token_usage": 0,
+      "dispatch_lag_ms": {
+        "p50": 0.2477294983691536,
+        "p95": 0.44833544670837,
+        "max": 0.4706249965238385,
+        "samples": 2
+      },
+      "arrival_e2e_ms": {
+        "p50": 1229.6594584950071,
+        "p95": 1290.7969458447042,
+        "samples": 2
+      },
+      "request_manager_configs": [],
+      "queue_wait_ms": {
+        "p50": null,
+        "p95": null,
+        "samples": 0
+      },
+      "total_output_tokens": 119,
+      "output_tokens_per_second": 91.69197506459518,
+      "successful_requests_per_second": 1.5410415977242886,
+      "status": "request_failures"
+    }
+  ],
+  "ended_at": "2026-11-08T18:53:14.999334+00:00"
+}

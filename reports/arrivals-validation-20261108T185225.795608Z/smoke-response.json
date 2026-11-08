@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-11-08T18:52:32.965236+00:00",
+  "model": "qwen3-4b",
+  "text": "An inference server processes and responds to queries using pre-trained models to generate predictions or outputs without retraining the models.",
+  "ttft_ms": 2323.9967089975835,
+  "e2e_ms": 2660.339041998668,
+  "output_tokens": 24,
+  "queue_wait_ms": null,
+  "request_manager": null,
+  "finish_reason": "stop"
+}

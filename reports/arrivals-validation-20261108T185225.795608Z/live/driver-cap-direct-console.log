@@ -1,0 +1,5 @@
+Bursts of 16 every 1s (driver cap 2): 2 warmup + 16 measured requests
+  OK=2 failed=0 dropped=14 | TTFT p50/p95=236.89/245.42 ms | E2E p50/p95=1227.94/1289.16 ms | queue p50/p95=n/a/n/a ms | output tokens/s=91.69
+  dispatch lag p95=0.45 ms | arrival-to-completion p95=1290.80 ms | peak in-flight=2
+Results: /Users/samir.sarwar/inference_load/reports/arrivals-validation-20261108T185225.795608Z/live/driver-cap-direct
+Some requests failed or were dropped. Inspect summary.json and requests.jsonl.

@@ -1,0 +1,4 @@
+Rate 4 requests/s (driver cap 32): 8 warmup + 24 measured requests
+  OK=24 failed=0 dropped=0 | TTFT p50/p95=258.75/360.64 ms | E2E p50/p95=1297.06/1379.31 ms | queue p50/p95=n/a/n/a ms | output tokens/s=203.06
+  dispatch lag p95=2.21 ms | arrival-to-completion p95=1381.90 ms | peak in-flight=6
+Results: /Users/samir.sarwar/inference_load/reports/arrivals-validation-20261108T185225.795608Z/live/rate-direct

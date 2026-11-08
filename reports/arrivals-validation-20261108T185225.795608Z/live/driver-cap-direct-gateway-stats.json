@@ -1,0 +1,9 @@
+{
+  "policy": "fifo",
+  "concurrency_limit": 4,
+  "queue_capacity": 8,
+  "queue_timeout_s": 30.0,
+  "upstream_timeout_s": 120.0,
+  "active_requests": 0,
+  "queued_requests": 0
+}

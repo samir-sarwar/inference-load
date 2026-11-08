@@ -1,0 +1,4 @@
+Bursts of 16 every 1s (driver cap 64): 8 warmup + 32 measured requests
+  OK=32 failed=0 dropped=0 | TTFT p50/p95=417.89/553.06 ms | E2E p50/p95=1464.06/1689.04 ms | queue p50/p95=n/a/n/a ms | output tokens/s=666.93
+  dispatch lag p95=25.32 ms | arrival-to-completion p95=1709.61 ms | peak in-flight=32
+Results: /Users/samir.sarwar/inference_load/reports/arrivals-validation-20261108T185225.795608Z/live/burst-direct

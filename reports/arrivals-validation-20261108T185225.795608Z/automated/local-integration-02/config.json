@@ -1,0 +1,31 @@
+{
+  "base_url": "http://127.0.0.1:52941",
+  "model": "qwen3-4b",
+  "requests": 4,
+  "concurrencies": [],
+  "warmup": 0,
+  "max_tokens": 128,
+  "prompts": [
+    "Explain KV caching in two sentences."
+  ],
+  "seed": 0,
+  "timeout": 120.0,
+  "mode": "rate",
+  "request_rate": 100.0,
+  "burst_size": 16,
+  "burst_interval": 1.0,
+  "max_in_flight": 128,
+  "started_at": "2026-11-08T18:52:29.669082+00:00",
+  "load_model": "open_loop",
+  "arrival_pattern": "rate",
+  "temperature": 0,
+  "percentile_method": "linear interpolation at (n - 1) * quantile",
+  "python_version": "3.12.12",
+  "httpx_version": "0.28.1",
+  "git": {
+    "commit": "90c7d2c0539a50b497249c09ce7e8ba067da6238",
+    "dirty": true
+  },
+  "declared_server_config": null,
+  "prompt_sha256": "7b395fe706a9b73af09eb9cdc876711021b5dfc3fd3279de7c2547384d6956fd"
+}
