@@ -7,13 +7,23 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import pytest
 import uvicorn
 
 from inference_load_lab.gateway import GatewayConfig, create_app
 
 
+@pytest.mark.parametrize(
+    "mode_args",
+    [
+        ["--concurrency", "4"],
+        ["--mode", "rate", "--request-rate", "100"],
+        ["--mode", "burst", "--burst-size", "4"],
+    ],
+)
 def test_benchmark_through_real_http_gateway_preserves_limits_and_queue_metrics(
     tmp_path,
+    mode_args,
 ):
     active = peak = 0
     keys = []
@@ -93,8 +103,7 @@ def test_benchmark_through_real_http_gateway_preserves_limits_and_queue_metrics(
                 f"http://127.0.0.1:{port}",
                 "--requests",
                 "4",
-                "--concurrency",
-                "4",
+                *mode_args,
                 "--warmup",
                 "0",
                 "--output-dir",

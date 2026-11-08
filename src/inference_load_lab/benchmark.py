@@ -1,4 +1,4 @@
-"""Run a closed-loop concurrency sweep against a streaming vLLM server."""
+"""Benchmark a streaming vLLM server with concurrency, rate, or burst load."""
 
 import argparse
 import asyncio
@@ -9,6 +9,7 @@ import os
 import platform
 import random
 import subprocess
+from collections import Counter
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -16,9 +17,11 @@ from time import perf_counter
 
 import httpx
 
+from inference_load_lab.arrivals import arrival_offsets, dispatch_arrivals
 from inference_load_lab.client import generate
 
 DEFAULT_PROMPT = "Explain KV caching in two sentences."
+DEFAULT_CONCURRENCIES = (1, 2, 4, 8, 16)
 
 
 @dataclass(frozen=True)
@@ -26,20 +29,40 @@ class BenchmarkConfig:
     base_url: str
     model: str = "qwen3-4b"
     requests: int = 100
-    concurrencies: tuple[int, ...] = (1, 2, 4, 8, 16)
+    concurrencies: tuple[int, ...] = DEFAULT_CONCURRENCIES
     warmup: int = 5
     max_tokens: int = 128
     prompts: tuple[str, ...] = (DEFAULT_PROMPT,)
     seed: int = 0
     timeout: float = 120.0
+    mode: str = "concurrency"
+    request_rate: float | None = None
+    burst_size: int = 16
+    burst_interval: float = 1.0
+    max_in_flight: int = 128
 
     def __post_init__(self):
         if self.requests < 1 or self.max_tokens < 1:
             raise ValueError("--requests and --max-tokens must be positive.")
-        if not self.concurrencies or any(c < 1 for c in self.concurrencies):
-            raise ValueError("Concurrency levels must be positive.")
-        if len(set(self.concurrencies)) != len(self.concurrencies):
-            raise ValueError("Concurrency levels must be unique.")
+        if self.mode not in {"concurrency", "rate", "burst"}:
+            raise ValueError("Unknown load mode.")
+        if self.mode == "concurrency":
+            if not self.concurrencies or any(c < 1 for c in self.concurrencies):
+                raise ValueError("Concurrency levels must be positive.")
+            if len(set(self.concurrencies)) != len(self.concurrencies):
+                raise ValueError("Concurrency levels must be unique.")
+        else:
+            arrival_offsets(
+                self.mode,
+                self.requests,
+                request_rate=self.request_rate,
+                burst_size=self.burst_size,
+                burst_interval=self.burst_interval,
+            )
+        if self.mode != "rate" and self.request_rate is not None:
+            raise ValueError("--request-rate applies only to rate mode.")
+        if self.max_in_flight < 1:
+            raise ValueError("--max-in-flight must be positive.")
         if self.warmup < 0:
             raise ValueError("--warmup cannot be negative.")
         if not math.isfinite(self.timeout) or self.timeout <= 0:
@@ -74,6 +97,13 @@ def summarize(records: list[dict], duration: float) -> dict:
         r["queue_wait_ms"] for r in successful if r.get("queue_wait_ms") is not None
     ]
     missing_usage = sum(r["output_tokens"] is None for r in successful)
+    attempted = [r for r in records if r["status"] != "dropped"]
+    dispatch_lags = [
+        r["dispatch_lag_ms"] for r in attempted if r.get("dispatch_lag_ms") is not None
+    ]
+    arrival_latencies = [
+        r["arrival_e2e_ms"] for r in successful if r.get("arrival_e2e_ms") is not None
+    ]
     managers = {
         json.dumps(r["request_manager"], sort_keys=True)
         for r in successful
@@ -85,9 +115,25 @@ def summarize(records: list[dict], duration: float) -> dict:
         else None
     )
     return {
-        "completed_requests": len(records),
+        "recorded_requests": len(records),
+        "completed_requests": len(attempted),
         "successful_requests": len(successful),
-        "failed_requests": len(records) - len(successful),
+        "failed_requests": sum(r["status"] == "error" for r in records),
+        "dropped_requests": sum(r["status"] == "dropped" for r in records),
+        "http_status_counts": dict(
+            Counter(
+                str(r["http_status"])
+                for r in attempted
+                if r.get("http_status") is not None
+            )
+        ),
+        "error_types": dict(
+            Counter(
+                r["error"].get("server_type") or r["error"]["type"]
+                for r in records
+                if r.get("error")
+            )
+        ),
         "duration_s": duration,
         "e2e_ms": {
             "p50": percentile(latencies, 0.5),
@@ -99,6 +145,17 @@ def summarize(records: list[dict], duration: float) -> dict:
             "samples": len(ttfts),
         },
         "missing_token_usage": missing_usage,
+        "dispatch_lag_ms": {
+            "p50": percentile(dispatch_lags, 0.5),
+            "p95": percentile(dispatch_lags, 0.95),
+            "max": max(dispatch_lags) if dispatch_lags else None,
+            "samples": len(dispatch_lags),
+        },
+        "arrival_e2e_ms": {
+            "p50": percentile(arrival_latencies, 0.5),
+            "p95": percentile(arrival_latencies, 0.95),
+            "samples": len(arrival_latencies),
+        },
         "request_manager_configs": [json.loads(value) for value in sorted(managers)],
         "queue_wait_ms": {
             "p50": percentile(queue_waits, 0.5),
@@ -109,6 +166,86 @@ def summarize(records: list[dict], duration: float) -> dict:
         "output_tokens_per_second": tokens / duration if tokens is not None else None,
         "successful_requests_per_second": len(successful) / duration,
     }
+
+
+def request_record(concurrency, phase, request_id, prompt_index, scheduled_offset=None):
+    return {
+        "concurrency": concurrency,
+        "phase": phase,
+        "request_id": request_id,
+        "prompt_index": prompt_index,
+        "scheduled_offset_s": scheduled_offset,
+        "started_offset_s": None,
+        "status": "error",
+        "http_status": None,
+        "ttft_ms": None,
+        "queue_wait_ms": None,
+        "request_manager": None,
+        "output_tokens": None,
+        "finish_reason": None,
+        "error": None,
+        "e2e_ms": None,
+        "dispatch_lag_ms": None,
+        "arrival_e2e_ms": None,
+    }
+
+
+async def perform_request(
+    client,
+    config,
+    api_key,
+    concurrency,
+    phase,
+    records,
+    request_id,
+    prompt_index,
+    started,
+    scheduled_offset=None,
+):
+    request_started = perf_counter()
+    record = request_record(
+        concurrency, phase, request_id, prompt_index, scheduled_offset
+    )
+    record["started_offset_s"] = request_started - started
+    if scheduled_offset is not None:
+        record["dispatch_lag_ms"] = max(
+            0.0, (request_started - started - scheduled_offset) * 1000
+        )
+    try:
+        async with asyncio.timeout(config.timeout):
+            result = await generate(
+                client,
+                base_url=config.base_url,
+                model=config.model,
+                prompt=config.prompts[prompt_index],
+                api_key=api_key,
+                max_tokens=config.max_tokens,
+            )
+        record.update(
+            status="ok",
+            http_status=200,
+            queue_wait_ms=result.get("queue_wait_ms"),
+            request_manager=result.get("request_manager"),
+            **{
+                k: result[k]
+                for k in ("ttft_ms", "e2e_ms", "output_tokens", "finish_reason")
+            },
+        )
+    except (httpx.HTTPError, RuntimeError, ValueError, TimeoutError) as exc:
+        message = str(exc) or "Request exceeded its total timeout."
+        record["http_status"] = getattr(exc, "status_code", None)
+        record["error"] = {
+            "type": type(exc).__name__,
+            "server_type": getattr(exc, "server_type", None),
+            "message": message.replace(api_key, "[redacted]") if api_key else message,
+        }
+        record["e2e_ms"] = (perf_counter() - request_started) * 1000
+    record["finished_offset_s"] = perf_counter() - started
+    if scheduled_offset is not None:
+        record["arrival_e2e_ms"] = (
+            record["finished_offset_s"] - scheduled_offset
+        ) * 1000
+    records.append(record)
 
 
 async def run_batch(
@@ -126,56 +263,63 @@ async def run_batch(
 
     async def worker():
         for request_id, prompt_index in work:
-            request_started = perf_counter()
-            record = {
-                "concurrency": concurrency,
-                "phase": phase,
-                "request_id": request_id,
-                "prompt_index": prompt_index,
-                "started_offset_s": request_started - started,
-                "status": "error",
-                "ttft_ms": None,
-                "queue_wait_ms": None,
-                "request_manager": None,
-                "output_tokens": None,
-                "finish_reason": None,
-                "error": None,
-            }
-            try:
-                async with asyncio.timeout(config.timeout):
-                    result = await generate(
-                        client,
-                        base_url=config.base_url,
-                        model=config.model,
-                        prompt=config.prompts[prompt_index],
-                        api_key=api_key,
-                        max_tokens=config.max_tokens,
-                    )
-                record.update(
-                    status="ok",
-                    queue_wait_ms=result.get("queue_wait_ms"),
-                    request_manager=result.get("request_manager"),
-                    **{
-                        k: result[k]
-                        for k in ("ttft_ms", "e2e_ms", "output_tokens", "finish_reason")
-                    },
-                )
-            except (httpx.HTTPError, RuntimeError, ValueError, TimeoutError) as exc:
-                message = str(exc) or "Request exceeded its total timeout."
-                record["error"] = {
-                    "type": type(exc).__name__,
-                    "message": message.replace(api_key, "[redacted]")
-                    if api_key
-                    else message,
-                }
-                record["e2e_ms"] = (perf_counter() - request_started) * 1000
-            record["finished_offset_s"] = perf_counter() - started
-            records.append(record)
+            await perform_request(
+                client,
+                config,
+                api_key,
+                concurrency,
+                phase,
+                records,
+                request_id,
+                prompt_index,
+                started,
+            )
 
     async with asyncio.TaskGroup() as group:
         for _ in range(min(concurrency, len(schedule))):
             group.create_task(worker())
     return perf_counter() - started
+
+
+async def run_arrival_batch(client, config, api_key, schedule, records):
+    offsets = arrival_offsets(
+        config.mode,
+        config.requests,
+        request_rate=config.request_rate,
+        burst_size=config.burst_size,
+        burst_interval=config.burst_interval,
+    )
+
+    async def send(request_id, offset, started):
+        await perform_request(
+            client,
+            config,
+            api_key,
+            None,
+            "measured",
+            records,
+            request_id,
+            schedule[request_id],
+            started,
+            offset,
+        )
+
+    def drop(request_id, offset, started):
+        record = request_record(
+            None, "measured", request_id, schedule[request_id], offset
+        )
+        record.update(
+            status="dropped",
+            finished_offset_s=perf_counter() - started,
+            error={
+                "type": "ClientCapacityExceeded",
+                "server_type": None,
+                "message": "Driver in-flight limit reached; this arrival was not sent.",
+            },
+        )
+        records.append(record)
+
+    return await dispatch_arrivals(offsets, config.max_in_flight, send, drop)
 
 
 def utc_now() -> str:
@@ -222,7 +366,8 @@ async def run_suite(
     settings = asdict(config)
     settings.update(
         started_at=utc_now(),
-        load_model="closed_loop",
+        load_model="closed_loop" if config.mode == "concurrency" else "open_loop",
+        arrival_pattern=config.mode if config.mode != "concurrency" else None,
         temperature=0,
         percentile_method="linear interpolation at (n - 1) * quantile",
         python_version=platform.python_version(),
@@ -255,14 +400,20 @@ async def run_suite(
 
         save_report()
         try:
-            for concurrency in config.concurrencies:
+            levels = config.concurrencies if config.mode == "concurrency" else (None,)
+            for concurrency in levels:
                 if progress:
-                    progress("start", {"concurrency": concurrency})
+                    progress("start", {"concurrency": concurrency, "mode": config.mode})
+                warmup_concurrency = (
+                    concurrency
+                    if concurrency is not None
+                    else min(16, config.max_in_flight)
+                )
                 await run_batch(
                     client,
                     config,
                     api_key,
-                    concurrency,
+                    warmup_concurrency,
                     warmup_schedule,
                     "warmup",
                     pending,
@@ -283,17 +434,36 @@ async def run_suite(
                     )
                     break
 
-                duration = await run_batch(
-                    client, config, api_key, concurrency, schedule, "measured", pending
-                )
+                arrival_details = {}
+                if config.mode == "concurrency":
+                    duration = await run_batch(
+                        client,
+                        config,
+                        api_key,
+                        concurrency,
+                        schedule,
+                        "measured",
+                        pending,
+                    )
+                else:
+                    arrival_details = await run_arrival_batch(
+                        client, config, api_key, schedule, pending
+                    )
+                    duration = arrival_details.pop("duration_s")
                 summary = {
                     "concurrency": concurrency,
+                    "mode": config.mode,
                     "planned_requests": config.requests,
                     "warmup_requests": config.warmup,
+                    "warmup_concurrency": warmup_concurrency,
+                    **arrival_details,
                     **summarize(pending, duration),
                 }
                 summary["status"] = (
-                    "ok" if summary["failed_requests"] == 0 else "request_failures"
+                    "ok"
+                    if summary["failed_requests"] == 0
+                    and summary["dropped_requests"] == 0
+                    else "request_failures"
                 )
                 report["runs"].append(summary)
                 save_requests()
@@ -343,12 +513,34 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--base-url", default=os.environ.get("VLLM_BASE_URL"))
     parser.add_argument("--model", default=os.environ.get("VLLM_MODEL", "qwen3-4b"))
     parser.add_argument(
+        "--mode", choices=["concurrency", "rate", "burst"], default="concurrency"
+    )
+    parser.add_argument(
+        "--request-rate", type=float, help="Scheduled requests per second in rate mode."
+    )
+    parser.add_argument(
+        "--burst-size", type=int, help="Requests per burst (default 16)."
+    )
+    parser.add_argument(
+        "--burst-interval", type=float, help="Seconds between bursts (default 1)."
+    )
+    parser.add_argument(
+        "--max-in-flight",
+        type=int,
+        help="Driver cap for arrival modes (default 128); excess arrivals are dropped, not queued.",
+    )
+    parser.add_argument(
         "--requests",
         type=int,
         default=100,
-        help="Measured requests per concurrency level.",
+        help="Measured requests per concurrency level or arrival run.",
     )
-    parser.add_argument("--concurrency", type=int, nargs="+", default=[1, 2, 4, 8, 16])
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        nargs="+",
+        help="Concurrency-mode levels (default 1 2 4 8 16).",
+    )
     parser.add_argument(
         "--warmup",
         type=int,
@@ -388,12 +580,32 @@ def main(argv: list[str] | None = None) -> None:
     api_key = os.environ.get("VLLM_API_KEY")
     if not api_key:
         parser.error("Set VLLM_API_KEY in your environment or .env.local.")
+    if args.mode != "concurrency" and args.concurrency is not None:
+        parser.error(
+            "Use --max-in-flight for arrival modes; --concurrency is only for concurrency mode."
+        )
+    if args.mode == "concurrency" and any(
+        v is not None
+        for v in [
+            args.request_rate,
+            args.burst_size,
+            args.burst_interval,
+            args.max_in_flight,
+        ]
+    ):
+        parser.error("Arrival options require --mode rate or --mode burst.")
+    if args.mode != "burst" and (
+        args.burst_size is not None or args.burst_interval is not None
+    ):
+        parser.error("Burst options require --mode burst.")
     try:
         config = BenchmarkConfig(
             base_url=args.base_url.rstrip("/"),
             model=args.model,
             requests=args.requests,
-            concurrencies=tuple(args.concurrency),
+            concurrencies=tuple(args.concurrency or DEFAULT_CONCURRENCIES)
+            if args.mode == "concurrency"
+            else (),
             warmup=args.warmup,
             max_tokens=args.max_tokens,
             prompts=load_prompts(args.prompts_file)
@@ -401,6 +613,13 @@ def main(argv: list[str] | None = None) -> None:
             else tuple(args.prompt or [DEFAULT_PROMPT]),
             seed=args.seed,
             timeout=args.timeout,
+            mode=args.mode,
+            request_rate=args.request_rate,
+            burst_size=args.burst_size if args.burst_size is not None else 16,
+            burst_interval=args.burst_interval
+            if args.burst_interval is not None
+            else 1.0,
+            max_in_flight=args.max_in_flight if args.max_in_flight is not None else 128,
         )
         server_config = (
             json.loads(args.server_config.read_text()) if args.server_config else None
@@ -413,8 +632,14 @@ def main(argv: list[str] | None = None) -> None:
 
     def display(event, summary):
         if event == "start":
+            if config.mode == "concurrency":
+                label = f"Concurrency {summary['concurrency']}"
+            elif config.mode == "rate":
+                label = f"Rate {config.request_rate:g} requests/s (driver cap {config.max_in_flight})"
+            else:
+                label = f"Bursts of {config.burst_size} every {config.burst_interval:g}s (driver cap {config.max_in_flight})"
             print(
-                f"Concurrency {summary['concurrency']}: {config.warmup} warmup + {config.requests} measured requests",
+                f"{label}: {config.warmup} warmup + {config.requests} measured requests",
                 flush=True,
             )
             return
@@ -423,16 +648,27 @@ def main(argv: list[str] | None = None) -> None:
             return f"{value:.2f}" if value is not None else "n/a"
 
         print(
-            f"  OK={summary['successful_requests']} failed={summary['failed_requests']} | "
+            f"  OK={summary['successful_requests']} failed={summary['failed_requests']} dropped={summary['dropped_requests']} | "
             f"TTFT p50/p95={number(summary['ttft_ms']['p50'])}/{number(summary['ttft_ms']['p95'])} ms | "
             f"E2E p50/p95={number(summary['e2e_ms']['p50'])}/{number(summary['e2e_ms']['p95'])} ms | "
             f"queue p50/p95={number(summary['queue_wait_ms']['p50'])}/{number(summary['queue_wait_ms']['p95'])} ms | "
             f"output tokens/s={number(summary['output_tokens_per_second'])}",
             flush=True,
         )
+        if config.mode != "concurrency":
+            print(
+                f"  dispatch lag p95={number(summary['dispatch_lag_ms']['p95'])} ms | "
+                f"arrival-to-completion p95={number(summary['arrival_e2e_ms']['p95'])} ms | "
+                f"peak in-flight={summary['peak_in_flight']}",
+                flush=True,
+            )
 
     async def run():
-        maximum = max(config.concurrencies)
+        maximum = (
+            max(config.concurrencies)
+            if config.mode == "concurrency"
+            else config.max_in_flight
+        )
         async with httpx.AsyncClient(
             timeout=httpx.Timeout(config.timeout, connect=min(10.0, config.timeout)),
             limits=httpx.Limits(
@@ -466,7 +702,8 @@ def main(argv: list[str] | None = None) -> None:
     print(f"Results: {output_dir.resolve()}")
     if report["status"] != "ok":
         parser.exit(
-            1, "Some requests failed. Inspect summary.json and requests.jsonl.\n"
+            1,
+            "Some requests failed or were dropped. Inspect summary.json and requests.jsonl.\n",
         )
 
 

@@ -313,7 +313,15 @@ def test_invalid_workloads_are_rejected(settings):
         BenchmarkConfig("https://example.test", **settings)
 
 
-def test_cli_runs_against_local_streaming_server(tmp_path):
+@pytest.mark.parametrize(
+    "mode_args",
+    [
+        ["--concurrency", "2"],
+        ["--mode", "rate", "--request-rate", "100"],
+        ["--mode", "burst", "--burst-size", "2", "--burst-interval", "0.02"],
+    ],
+)
+def test_cli_runs_against_local_streaming_server(tmp_path, mode_args):
     calls = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -349,8 +357,7 @@ def test_cli_runs_against_local_streaming_server(tmp_path):
                 f"http://127.0.0.1:{server.server_port}",
                 "--requests",
                 "4",
-                "--concurrency",
-                "2",
+                *mode_args,
                 "--warmup",
                 "2",
                 "--output-dir",
