@@ -40,3 +40,15 @@ These are client-observed timings. They include the network and Runpod proxy.
 The first visible content is a practical TTFT proxy, and a streaming chunk can
 contain multiple tokens. The client uses the server's token count rather than
 counting chunks. An interrupted stream is reported as a failure.
+
+## Checks
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest -q
+```
+
+The tests cover streamed content and metadata, accurate use of the server's
+token count, HTTP errors, in-stream errors, and truncated responses. They do not
+need a GPU.
