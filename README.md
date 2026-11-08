@@ -75,3 +75,6 @@ uv run pytest -q
 The tests cover streamed content and metadata, accurate use of the server's
 token count, HTTP errors, in-stream errors, and truncated responses. They do not
 need a GPU.
+Benchmark tests also check bounded concurrency, warmup exclusion, repeatable
+workloads, timeout and error reporting, percentile and throughput calculations,
+and a full CLI run against a local streaming HTTP server.
