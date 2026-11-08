@@ -10,6 +10,7 @@ import platform
 import random
 import subprocess
 from collections import Counter
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,6 +20,7 @@ import httpx
 
 from inference_load_lab.arrivals import arrival_offsets, dispatch_arrivals
 from inference_load_lab.client import generate
+from inference_load_lab.telemetry import RunpodMonitor, load_runpod_key
 
 DEFAULT_PROMPT = "Explain KV caching in two sentences."
 DEFAULT_CONCURRENCIES = (1, 2, 4, 8, 16)
@@ -371,6 +373,7 @@ async def run_suite(
     *,
     server_config: dict | None = None,
     progress=None,
+    gpu_monitor: RunpodMonitor | None = None,
 ) -> dict:
     output_dir.mkdir(parents=True, exist_ok=False)
     settings = asdict(config)
@@ -385,6 +388,7 @@ async def run_suite(
         git=git_state(),
         declared_server_config=server_config,
         tpot_definition="(client e2e_ms - client ttft_ms) / (server output_tokens - 1)",
+        gpu_telemetry=gpu_monitor.config() if gpu_monitor else None,
         prompt_sha256=hashlib.sha256(
             json.dumps(config.prompts, ensure_ascii=False).encode()
         ).hexdigest(),
@@ -446,21 +450,25 @@ async def run_suite(
                     break
 
                 arrival_details = {}
-                if config.mode == "concurrency":
-                    duration = await run_batch(
-                        client,
-                        config,
-                        api_key,
-                        concurrency,
-                        schedule,
-                        "measured",
-                        pending,
-                    )
-                else:
-                    arrival_details = await run_arrival_batch(
-                        client, config, api_key, schedule, pending
-                    )
-                    duration = arrival_details.pop("duration_s")
+                measurement = (
+                    gpu_monitor.measure(concurrency) if gpu_monitor else nullcontext()
+                )
+                async with measurement as observation:
+                    if config.mode == "concurrency":
+                        duration = await run_batch(
+                            client,
+                            config,
+                            api_key,
+                            concurrency,
+                            schedule,
+                            "measured",
+                            pending,
+                        )
+                    else:
+                        arrival_details = await run_arrival_batch(
+                            client, config, api_key, schedule, pending
+                        )
+                        duration = arrival_details.pop("duration_s")
                 summary = {
                     "concurrency": concurrency,
                     "mode": config.mode,
@@ -470,6 +478,8 @@ async def run_suite(
                     **arrival_details,
                     **summarize(pending, duration),
                 }
+                if observation is not None:
+                    summary["gpu"] = observation.summary()
                 summary["status"] = (
                     "ok"
                     if summary["failed_requests"] == 0
@@ -590,12 +600,22 @@ def main(argv: list[str] | None = None) -> None:
         type=Path,
         help="Optional declared server settings to record with the run.",
     )
+    parser.add_argument(
+        "--gpu-pod-id", help="Opt in to sampling this Runpod pod's GPU utilization."
+    )
+    parser.add_argument("--gpu-interval", type=float, default=2.0)
     args = parser.parse_args(argv)
     if not args.base_url:
         parser.error("Set VLLM_BASE_URL or pass --base-url.")
     api_key = os.environ.get("VLLM_API_KEY")
     if not api_key:
         parser.error("Set VLLM_API_KEY in your environment or .env.local.")
+    try:
+        if not math.isfinite(args.gpu_interval) or args.gpu_interval < 1:
+            raise ValueError("--gpu-interval must be finite and at least one second.")
+        gpu_key = load_runpod_key() if args.gpu_pod_id else None
+    except (ValueError, OSError) as exc:
+        parser.error(str(exc))
     if args.mode != "concurrency" and args.concurrency is not None:
         parser.error(
             "Use --max-in-flight for arrival modes; --concurrency is only for concurrency mode."
@@ -680,6 +700,13 @@ def main(argv: list[str] | None = None) -> None:
                 f"peak in-flight={summary['peak_in_flight']}",
                 flush=True,
             )
+        if "gpu" in summary:
+            gpu = summary["gpu"]
+            print(
+                f"  GPU telemetry={gpu['status']} | unique samples={gpu['unique_samples']} | "
+                f"failed polls={gpu['failed_polls']}",
+                flush=True,
+            )
 
     async def run():
         maximum = (
@@ -687,14 +714,19 @@ def main(argv: list[str] | None = None) -> None:
             if config.mode == "concurrency"
             else config.max_in_flight
         )
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(config.timeout, connect=min(10.0, config.timeout)),
-            limits=httpx.Limits(
-                max_connections=maximum,
-                max_keepalive_connections=maximum,
-                keepalive_expiry=60.0,
-            ),
-        ) as client:
+        async with (
+            httpx.AsyncClient(
+                timeout=httpx.Timeout(
+                    config.timeout, connect=min(10.0, config.timeout)
+                ),
+                limits=httpx.Limits(
+                    max_connections=maximum,
+                    max_keepalive_connections=maximum,
+                    keepalive_expiry=60.0,
+                ),
+            ) as client,
+            httpx.AsyncClient(timeout=10) as gpu_client,
+        ):
             return await run_suite(
                 client,
                 config,
@@ -702,6 +734,15 @@ def main(argv: list[str] | None = None) -> None:
                 output_dir,
                 server_config=server_config,
                 progress=display,
+                gpu_monitor=RunpodMonitor(
+                    gpu_client,
+                    gpu_key,
+                    args.gpu_pod_id,
+                    output_dir / "gpu.jsonl",
+                    args.gpu_interval,
+                )
+                if args.gpu_pod_id
+                else None,
             )
 
     try:
