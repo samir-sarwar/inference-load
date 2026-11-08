@@ -218,3 +218,7 @@ need a GPU.
 Benchmark tests also check bounded concurrency, warmup exclusion, repeatable
 workloads, timeout and error reporting, percentile and throughput calculations,
 and a full CLI run against a local streaming HTTP server.
+Admission tests cover FIFO order, bounded capacity, timeout and cancellation
+cleanup, and stream lifetime. An integration test runs the benchmark CLI through
+a real local HTTP gateway and mock upstream, checking its concurrency limit and
+queue-wait measurements without using a GPU.
