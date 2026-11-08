@@ -5,6 +5,16 @@ A small LLM serving and benchmarking project built around vLLM.
 Compare streaming requests sent directly to a Qwen model on a Runpod GPU Pod
 with requests admitted through a bounded FIFO gateway.
 
+```mermaid
+flowchart LR
+    L[Python load generator] -->|managed requests| Q[Bounded FIFO gateway]
+    Q --> V[vLLM · Qwen on one GPU]
+    L -->|direct baseline| V
+    L --> R[Request records and benchmark summaries]
+    G[Runpod GPU telemetry] --> R
+    R --> A[Controlled comparisons and charts]
+```
+
 ## Send a request
 
 Install the locked Python environment:
@@ -33,6 +43,8 @@ The client prints the generated text as it arrives, followed by a JSON summary:
 
 - `ttft_ms`: time from request start to the first nonempty generated content.
 - `e2e_ms`: time from request start to the stream's `[DONE]` event.
+- `tpot_ms`: `(e2e_ms - ttft_ms) / (output_tokens - 1)` when at least two
+  output tokens and visible content are available; otherwise `null`.
 - `output_tokens`: the server's reported completion-token count.
 - `finish_reason`: why generation stopped, such as `stop` or `length`.
 - `queue_wait_ms`: time waiting for gateway admission, or `null` on the direct path.
@@ -42,6 +54,9 @@ These are client-observed timings. They include the network and Runpod proxy.
 The first visible content is a practical TTFT proxy, and a streaming chunk can
 contain multiple tokens. The client uses the server's token count rather than
 counting chunks. An interrupted stream is reported as a failure.
+TPOT is a client-observed average over the response after first content, including
+network delivery and the final stream event. It does not measure individual
+token gaps. One-token outputs and missing usage are excluded from TPOT summaries.
 
 ## Run a load test
 
@@ -89,6 +104,8 @@ the sum of successful requests' output tokens divided by the measured wall time
 from launching the workers until they all finish, including failed requests' time.
 It is not the average of individual requests' token rates. If any successful
 request lacks a token count, output-token throughput is reported as `n/a`.
+TPOT p50/p95 is calculated across eligible successful requests. These are
+percentiles of each request's average TPOT.
 
 Every invocation creates a new, Git-ignored `results/<UTC timestamp>/` directory:
 
@@ -248,6 +265,104 @@ JSON responses. The gateway uses one process with an in-memory queue; it does no
 route work across multiple model servers. Ctrl+C allows up to ten seconds for
 graceful shutdown before outstanding requests are cancelled.
 
+## GPU utilization
+
+Opt in to GPU sampling when benchmarking a Runpod server:
+
+```bash
+uv run --env-file .env.local inference-load-lab bench \
+  --requests 100 --concurrency 16 --warmup 16 \
+  --gpu-pod-id YOUR_POD_ID --gpu-interval 2
+```
+
+The collector uses `RUNPOD_API_KEY`, or the existing `runpodctl` credential in
+`~/.runpod/config.toml`. This is separate from the vLLM bearer key.
+It reads the named pod's timestamped `latestTelemetry.individualGpuMetrics`
+through Runpod's [documented GraphQL schema](https://graphql-spec.runpod.io/).
+Only the named pod's GPU IDs, reported utilization, provider uptime, provider
+sample timestamps, and poll timestamps are saved in `gpu.jsonl`.
+Inference and telemetry use separate HTTP
+connection pools.
+
+Sampling starts after warmup and stops with the measured load. The summary gives
+the arithmetic mean and maximum of unique provider samples for each GPU, poll
+failures, and coverage. Provider timestamps determine whether a sample falls
+inside the measured window. Older and newer samples are retained in the raw
+file and excluded from the summary; repeated timestamps are counted once.
+A response received after the window can contain a valid sample taken inside
+it. Unavailable samples produce an explicit status rather than a fabricated zero.
+
+These are provider-reported snapshots, with provider-dependent update timing.
+Repeated polls can observe the same underlying measurement; a two-second polling
+interval does not imply two-second hardware resolution. Execution utilization
+does not describe GPU occupancy or model FLOPS efficiency. The vLLM setting
+`--gpu-memory-utilization` controls memory allocation and is recorded separately.
+
+## Controlled admission experiment
+
+Install the optional plotting dependencies:
+
+```bash
+uv sync --locked --extra analysis
+```
+
+Run the checked-in comparison plan:
+
+```bash
+uv run --env-file .env.local inference-load-lab experiment \
+  --config configs/admission-experiment.json \
+  --gpu-pod-id YOUR_POD_ID \
+  --output-dir results/admission-comparison
+
+uv run inference-load-lab analyze results/admission-comparison
+```
+
+The experiment starts and stops temporary local gateways automatically. Its
+three variants are direct vLLM, FIFO concurrency 4, and FIFO concurrency 16.
+The prespecified baseline is FIFO 4 and the candidate is FIFO 16. Each variant
+runs three times, rotating its position in the sequence to balance run order.
+Every run uses client concurrency 32, 300 measured requests, 32 excluded warmups,
+the same five prompts and seed, and a 128-token output budget. The vLLM extension
+`ignore_eos=true` makes this a fixed-length decode workload. All nine runs send
+2,700 measured requests and 288 warmups. The longer run windows allow for the
+provider's coarse telemetry refresh cadence. The FIFO queue size stays at 128, and
+the vLLM server's sequence limit stays at 16. Admission concurrency is the
+parameter under comparison.
+
+Apply the candidate's admission settings to an interactive gateway with:
+
+```bash
+uv run --env-file .env.local inference-load-lab serve \
+  --concurrency 16 --queue-size 128 --queue-timeout 120 --upstream-timeout 120
+```
+
+The primary metric is per-run p95 end-to-end latency. The analysis pairs the
+baseline and candidate within each trial, reports each paired percentage change,
+and takes the median across trials. Throughput, TTFT, TPOT, queue wait, errors,
+drops, and GPU samples remain available alongside that metric. Before reporting
+a consistent improvement, it checks workload and declared server settings,
+actual gateway limits, completed-request counts, matching output-token counts
+per request, GPU identity, and at least one fresh unique GPU sample per run.
+The candidate must reduce p95
+latency and maintain or increase throughput in every paired trial. Failed
+comparisons retain their data and explain which checks failed.
+
+Outputs include all per-run configs, request records and summaries, raw GPU
+samples, vLLM `/metrics` snapshots, run order, and source-file hashes. Analysis
+exports `comparison.json`, `trials.csv`, `latency-throughput.png`, and
+`gpu-utilization.png`. Use `analyze --no-plots` for numeric exports without the
+plotting extra. Existing output directories are refused. Ctrl+C preserves
+partial results and shuts down the current temporary gateway.
+
+The default experiment uses repeated prompts with a warm prefix cache. Its
+results describe this workload, hardware, server configuration, and network
+path. Three trials show observed variation; their minimum and maximum are not
+confidence intervals. The direct route provides context for the cost of gateway
+admission. Admission tuning should be repeated for different request lengths,
+arrival rates, and service targets.
+
+Saved experiment artifacts are indexed in [reports/README.md](reports/README.md).
+
 ## Server configuration
 
 - Model: `Qwen/Qwen3-4B-Instruct-2507` (public, BF16 weights).
@@ -271,12 +386,27 @@ revision, and launch arguments after a successful create. No network volume is
 created by this setup; cached weights on container disk must be downloaded again
 after stopping the Pod.
 
+On a Linux NVIDIA GPU host with Docker, NVIDIA Container Toolkit, and a driver
+supporting CUDA 12.9, launch the same pinned image and model arguments with:
+
+```bash
+uv run --env-file .env.local python scripts/serve_vllm.py
+```
+
+The script reads `configs/vllm.json`, passes the API key through the environment,
+binds the API to local port 8000, and uses a named model-cache volume. Set
+`VLLM_BASE_URL=http://127.0.0.1:8000` for clients on that host. Use
+`--print-command` to inspect the command without starting Docker. On Runpod,
+use the image, arguments, CUDA floor, and environment-variable names in
+`configs/vllm.json`; expose `8000/http` and obtain the pod's proxy URL.
+
 ## Checks
 
 ```bash
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest -q
+uv build
 ```
 
 The tests cover streamed content and metadata, accurate use of the server's
@@ -292,3 +422,12 @@ queue-wait measurements without using a GPU.
 Arrival-mode tests check that requests continue arriving while earlier responses
 are blocked, that the driver cap drops rather than queues excess arrivals, and
 that both new CLI modes work through the real local HTTP gateway.
+Tests also exercise the full repeated-experiment CLI against a local streaming
+server, verify temporary gateway cleanup, and reject comparisons with changed
+workloads, token counts, admission limits, or missing GPU telemetry. GitHub
+Actions runs the locked environment, checks, tests, and package build without
+GPU credentials.
+
+The metric definitions and vLLM-specific request parameters follow the pinned
+[vLLM metrics documentation](https://docs.vllm.ai/en/v0.11.2/design/metrics/)
+and [request protocol](https://docs.vllm.ai/en/v0.11.2/api/vllm/entrypoints/openai/protocol/).
