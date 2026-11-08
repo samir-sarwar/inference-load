@@ -11,6 +11,21 @@ from time import perf_counter
 import httpx
 
 
+class InferenceHTTPError(RuntimeError):
+    def __init__(self, status_code: int, body: str):
+        super().__init__(f"HTTP {status_code}: {body}")
+        self.status_code = status_code
+        self.server_type = None
+        try:
+            value = json.loads(body)
+        except ValueError:
+            return
+        if isinstance(value, dict) and isinstance(value.get("error"), dict):
+            server_type = value["error"].get("type")
+            if isinstance(server_type, str):
+                self.server_type = server_type
+
+
 async def generate(
     client: httpx.AsyncClient,
     *,
@@ -45,7 +60,7 @@ async def generate(
     ) as response:
         if response.status_code != 200:
             await response.aread()
-            raise RuntimeError(f"HTTP {response.status_code}: {response.text}")
+            raise InferenceHTTPError(response.status_code, response.text)
 
         raw_queue_wait = response.headers.get("x-queue-wait-ms")
         queue_wait_ms = float(raw_queue_wait) if raw_queue_wait is not None else None
