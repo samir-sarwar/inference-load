@@ -1,0 +1,43 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": 4,
+      "planned_requests": 4,
+      "warmup_requests": 0,
+      "completed_requests": 4,
+      "successful_requests": 4,
+      "failed_requests": 0,
+      "duration_s": 0.1586942080029985,
+      "e2e_ms": {
+        "p50": 94.04810449996148,
+        "p95": 139.29971250254312
+      },
+      "ttft_ms": {
+        "p50": 60.35431250347756,
+        "p95": 108.58533569771679,
+        "samples": 4
+      },
+      "missing_token_usage": 0,
+      "request_manager_configs": [
+        {
+          "concurrency_limit": 1,
+          "policy": "fifo",
+          "queue_capacity": 8,
+          "queue_timeout_s": 30.0,
+          "upstream_timeout_s": 120.0
+        }
+      ],
+      "queue_wait_ms": {
+        "p50": 55.22960449999999,
+        "p95": 103.45062954999999,
+        "samples": 4
+      },
+      "total_output_tokens": 8,
+      "output_tokens_per_second": 50.41141766086915,
+      "successful_requests_per_second": 25.205708830434574,
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T16:56:58.994633+00:00"
+}

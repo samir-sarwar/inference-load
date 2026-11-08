@@ -1,0 +1,5 @@
+Concurrency 4: 16 warmup + 100 measured requests
+  OK=100 failed=0 | TTFT p50/p95=185.50/403.75 ms | E2E p50/p95=1208.37/1411.72 ms | queue p50/p95=0.00/0.01 ms | output tokens/s=193.71
+Concurrency 16: 16 warmup + 100 measured requests
+  OK=100 failed=0 | TTFT p50/p95=3886.77/4097.55 ms | E2E p50/p95=4909.29/5148.04 ms | queue p50/p95=3668.36/3882.66 ms | output tokens/s=193.86
+Results: /Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/live/trial-03/fifo

@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": 4,
+      "planned_requests": 100,
+      "warmup_requests": 16,
+      "completed_requests": 100,
+      "successful_requests": 100,
+      "failed_requests": 0,
+      "duration_s": 33.773530291997304,
+      "e2e_ms": {
+        "p50": 1321.5886044999934,
+        "p95": 1560.2346583506005
+      },
+      "ttft_ms": {
+        "p50": 277.1791454979393,
+        "p95": 535.8979524033202,
+        "samples": 100
+      },
+      "missing_token_usage": 0,
+      "request_manager_configs": [],
+      "queue_wait_ms": {
+        "p50": null,
+        "p95": null,
+        "samples": 0
+      },
+      "total_output_tokens": 6036,
+      "output_tokens_per_second": 178.7198420720099,
+      "successful_requests_per_second": 2.9608986426774333,
+      "status": "ok"
+    },
+    {
+      "concurrency": 16,
+      "planned_requests": 100,
+      "warmup_requests": 16,
+      "completed_requests": 100,
+      "successful_requests": 100,
+      "failed_requests": 0,
+      "duration_s": 9.603205500003241,
+      "e2e_ms": {
+        "p50": 1399.7190209993278,
+        "p95": 1544.9060833008843
+      },
+      "ttft_ms": {
+        "p50": 300.548749997688,
+        "p95": 463.98334200639493,
+        "samples": 100
+      },
+      "missing_token_usage": 0,
+      "request_manager_configs": [],
+      "queue_wait_ms": {
+        "p50": null,
+        "p95": null,
+        "samples": 0
+      },
+      "total_output_tokens": 6022,
+      "output_tokens_per_second": 627.0822799739074,
+      "successful_requests_per_second": 10.413189637560734,
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T17:02:04.987496+00:00"
+}

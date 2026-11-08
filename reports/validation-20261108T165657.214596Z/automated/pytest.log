@@ -1,0 +1,96 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.2.0, pluggy-1.7.0 -- /Users/samir.sarwar/inference_load/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/samir.sarwar/inference_load
+configfile: pyproject.toml
+plugins: anyio-4.16.0, asyncio-1.4.1.post1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 41 items
+
+tests/test_admission.py::test_fifo_admission_and_new_arrivals_cannot_bypass_waiters PASSED [  2%]
+tests/test_admission.py::test_limit_and_queue_capacity_and_idempotent_release PASSED [  4%]
+tests/test_admission.py::test_timeout_and_cancellation_remove_waiting_tickets PASSED [  7%]
+tests/test_admission.py::test_closed_gate_wakes_waiters_and_rejects_new_work PASSED [  9%]
+tests/test_admission.py::test_zero_queue_capacity_rejects_excess_work_immediately PASSED [ 12%]
+tests/test_benchmark.py::test_bounded_workers_send_exact_request_count_and_exclude_warmup PASSED [ 14%]
+tests/test_benchmark.py::test_sweep_replays_same_seeded_prompt_sequence_and_saves_no_api_key PASSED [ 17%]
+tests/test_benchmark.py::test_failed_requests_are_retained_and_excluded_from_success_metrics PASSED [ 19%]
+tests/test_benchmark.py::test_missing_usage_is_visible_instead_of_reporting_incomplete_throughput PASSED [ 21%]
+tests/test_benchmark.py::test_failed_warmup_stops_before_measured_load PASSED [ 24%]
+tests/test_benchmark.py::test_total_request_deadline_records_timeout PASSED [ 26%]
+tests/test_benchmark.py::test_existing_results_are_not_overwritten PASSED [ 29%]
+tests/test_benchmark.py::test_interrupted_run_preserves_completed_requests PASSED [ 31%]
+tests/test_benchmark.py::test_percentiles_and_run_throughput_use_correct_denominators PASSED [ 34%]
+tests/test_benchmark.py::test_prompt_file_supports_strings_and_prompt_objects PASSED [ 36%]
+tests/test_benchmark.py::test_queue_wait_summary_distinguishes_measured_and_unavailable_values PASSED [ 39%]
+tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings0] PASSED [ 41%]
+tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings1] PASSED [ 43%]
+tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings2] PASSED [ 46%]
+tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings3] PASSED [ 48%]
+tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings4] PASSED [ 51%]
+tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings5] PASSED [ 53%]
+tests/test_benchmark.py::test_cli_runs_against_local_streaming_server PASSED [ 56%]
+tests/test_client.py::test_stream_uses_content_for_ttft_and_server_usage_for_tokens PASSED [ 58%]
+tests/test_client.py::test_reads_gateway_queue_wait_header PASSED        [ 60%]
+tests/test_client.py::test_failed_or_incomplete_requests_are_not_reported_as_success[401-Invalid API key-HTTP 401: Invalid API key] PASSED [ 63%]
+tests/test_client.py::test_failed_or_incomplete_requests_are_not_reported_as_success[200-data: {"error": {"message": "Engine failed"}}\n\n-Engine failed] PASSED [ 65%]
+tests/test_client.py::test_failed_or_incomplete_requests_are_not_reported_as_success[200-data: {"choices": [{"delta": {"content": "partial"}}]}\n\n-stream ended before] PASSED [ 68%]
+tests/test_gateway.py::test_streaming_client_works_and_upstream_uses_its_own_key PASSED [ 70%]
+tests/test_gateway.py::test_slot_is_held_for_entire_stream_and_overflow_is_rejected PASSED [ 73%]
+tests/test_gateway.py::test_queue_timeout_does_not_send_request_upstream PASSED [ 75%]
+tests/test_gateway.py::test_disconnected_waiter_is_removed_before_admission PASSED [ 78%]
+tests/test_gateway.py::test_disconnected_stream_closes_upstream_and_releases_slot PASSED [ 80%]
+tests/test_gateway.py::test_cancel_during_upstream_headers_releases_granted_slot PASSED [ 82%]
+tests/test_gateway.py::test_upstream_header_timeout_releases_slot PASSED [ 85%]
+tests/test_gateway.py::test_stream_timeout_is_an_error_event_and_not_a_successful_completion PASSED [ 87%]
+tests/test_gateway.py::test_upstream_errors_do_not_leak_admission_slots PASSED [ 90%]
+tests/test_gateway.py::test_nonstreaming_json_and_encoded_upstream_responses_are_forwarded PASSED [ 92%]
+tests/test_gateway.py::test_midstream_network_error_is_reported_without_exposing_upstream_key PASSED [ 95%]
+tests/test_gateway.py::test_auth_validation_and_model_list_do_not_enter_inference_queue PASSED [ 97%]
+tests/test_gateway_network.py::test_benchmark_through_real_http_gateway_preserves_limits_and_queue_metrics PASSED [100%]
+
+==================================== PASSES ====================================
+- generated xml file: /Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/automated/junit.xml -
+=========================== short test summary info ============================
+PASSED tests/test_admission.py::test_fifo_admission_and_new_arrivals_cannot_bypass_waiters
+PASSED tests/test_admission.py::test_limit_and_queue_capacity_and_idempotent_release
+PASSED tests/test_admission.py::test_timeout_and_cancellation_remove_waiting_tickets
+PASSED tests/test_admission.py::test_closed_gate_wakes_waiters_and_rejects_new_work
+PASSED tests/test_admission.py::test_zero_queue_capacity_rejects_excess_work_immediately
+PASSED tests/test_benchmark.py::test_bounded_workers_send_exact_request_count_and_exclude_warmup
+PASSED tests/test_benchmark.py::test_sweep_replays_same_seeded_prompt_sequence_and_saves_no_api_key
+PASSED tests/test_benchmark.py::test_failed_requests_are_retained_and_excluded_from_success_metrics
+PASSED tests/test_benchmark.py::test_missing_usage_is_visible_instead_of_reporting_incomplete_throughput
+PASSED tests/test_benchmark.py::test_failed_warmup_stops_before_measured_load
+PASSED tests/test_benchmark.py::test_total_request_deadline_records_timeout
+PASSED tests/test_benchmark.py::test_existing_results_are_not_overwritten
+PASSED tests/test_benchmark.py::test_interrupted_run_preserves_completed_requests
+PASSED tests/test_benchmark.py::test_percentiles_and_run_throughput_use_correct_denominators
+PASSED tests/test_benchmark.py::test_prompt_file_supports_strings_and_prompt_objects
+PASSED tests/test_benchmark.py::test_queue_wait_summary_distinguishes_measured_and_unavailable_values
+PASSED tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings0]
+PASSED tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings1]
+PASSED tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings2]
+PASSED tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings3]
+PASSED tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings4]
+PASSED tests/test_benchmark.py::test_invalid_workloads_are_rejected[settings5]
+PASSED tests/test_benchmark.py::test_cli_runs_against_local_streaming_server
+PASSED tests/test_client.py::test_stream_uses_content_for_ttft_and_server_usage_for_tokens
+PASSED tests/test_client.py::test_reads_gateway_queue_wait_header
+PASSED tests/test_client.py::test_failed_or_incomplete_requests_are_not_reported_as_success[401-Invalid API key-HTTP 401: Invalid API key]
+PASSED tests/test_client.py::test_failed_or_incomplete_requests_are_not_reported_as_success[200-data: {"error": {"message": "Engine failed"}}\n\n-Engine failed]
+PASSED tests/test_client.py::test_failed_or_incomplete_requests_are_not_reported_as_success[200-data: {"choices": [{"delta": {"content": "partial"}}]}\n\n-stream ended before]
+PASSED tests/test_gateway.py::test_streaming_client_works_and_upstream_uses_its_own_key
+PASSED tests/test_gateway.py::test_slot_is_held_for_entire_stream_and_overflow_is_rejected
+PASSED tests/test_gateway.py::test_queue_timeout_does_not_send_request_upstream
+PASSED tests/test_gateway.py::test_disconnected_waiter_is_removed_before_admission
+PASSED tests/test_gateway.py::test_disconnected_stream_closes_upstream_and_releases_slot
+PASSED tests/test_gateway.py::test_cancel_during_upstream_headers_releases_granted_slot
+PASSED tests/test_gateway.py::test_upstream_header_timeout_releases_slot
+PASSED tests/test_gateway.py::test_stream_timeout_is_an_error_event_and_not_a_successful_completion
+PASSED tests/test_gateway.py::test_upstream_errors_do_not_leak_admission_slots
+PASSED tests/test_gateway.py::test_nonstreaming_json_and_encoded_upstream_responses_are_forwarded
+PASSED tests/test_gateway.py::test_midstream_network_error_is_reported_without_exposing_upstream_key
+PASSED tests/test_gateway.py::test_auth_validation_and_model_list_do_not_enter_inference_queue
+PASSED tests/test_gateway_network.py::test_benchmark_through_real_http_gateway_preserves_limits_and_queue_metrics
+============================== 41 passed in 1.88s ==============================

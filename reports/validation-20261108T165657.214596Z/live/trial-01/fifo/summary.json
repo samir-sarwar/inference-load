@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": 4,
+      "planned_requests": 100,
+      "warmup_requests": 16,
+      "completed_requests": 100,
+      "successful_requests": 100,
+      "failed_requests": 0,
+      "duration_s": 31.847280499998305,
+      "e2e_ms": {
+        "p50": 1213.637437500438,
+        "p95": 1487.0550247014762
+      },
+      "ttft_ms": {
+        "p50": 187.4299789997167,
+        "p95": 442.7148118513286,
+        "samples": 100
+      },
+      "missing_token_usage": 0,
+      "request_manager_configs": [
+        {
+          "concurrency_limit": 4,
+          "policy": "fifo",
+          "queue_capacity": 64,
+          "queue_timeout_s": 30.0,
+          "upstream_timeout_s": 120.0
+        }
+      ],
+      "queue_wait_ms": {
+        "p50": 0.003709,
+        "p95": 0.00792115,
+        "samples": 100
+      },
+      "total_output_tokens": 6051,
+      "output_tokens_per_second": 190.0005245345932,
+      "successful_requests_per_second": 3.139985531888832,
+      "status": "ok"
+    },
+    {
+      "concurrency": 16,
+      "planned_requests": 100,
+      "warmup_requests": 16,
+      "completed_requests": 100,
+      "successful_requests": 100,
+      "failed_requests": 0,
+      "duration_s": 31.264183291001245,
+      "e2e_ms": {
+        "p50": 4939.091832995473,
+        "p95": 5151.629196151407
+      },
+      "ttft_ms": {
+        "p50": 3914.7504169995955,
+        "p95": 4115.149812847085,
+        "samples": 100
+      },
+      "missing_token_usage": 0,
+      "request_manager_configs": [
+        {
+          "concurrency_limit": 4,
+          "policy": "fifo",
+          "queue_capacity": 64,
+          "queue_timeout_s": 30.0,
+          "upstream_timeout_s": 120.0
+        }
+      ],
+      "queue_wait_ms": {
+        "p50": 3694.151979,
+        "p95": 3856.41870865,
+        "samples": 100
+      },
+      "total_output_tokens": 6036,
+      "output_tokens_per_second": 193.06437477729793,
+      "successful_requests_per_second": 3.198548289882338,
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T16:59:07.696998+00:00"
+}

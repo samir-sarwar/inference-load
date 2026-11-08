@@ -1,0 +1,398 @@
+{
+  "status": "complete",
+  "started_at": "2026-11-08T16:56:57.214946+00:00",
+  "started_at_toronto": "2026-11-08T11:56:57.215058-05:00",
+  "git_base": "5a436a6d995384cbaf95ec6f8c7a55c05535eede",
+  "tested_code_commit": "acd7982dba6563340a15bff11ceea572ffbda03c",
+  "checks": {
+    "pytest": {
+      "command": [
+        "uv",
+        "run",
+        "pytest",
+        "-v",
+        "-rA",
+        "--junitxml",
+        "/Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/automated/junit.xml",
+        "--basetemp",
+        "/var/folders/6t/jktnvfb12h90xh3xtymwfdyw0000gn/T/inference-load-validation-cvjbsirt/pytest"
+      ],
+      "started_at": "2026-11-08T16:56:57.249963+00:00",
+      "duration_s": 2.1897664999996778,
+      "exit_code": 0,
+      "log": "automated/pytest.log"
+    },
+    "ruff-check": {
+      "command": [
+        "uv",
+        "run",
+        "ruff",
+        "check",
+        "."
+      ],
+      "started_at": "2026-11-08T16:56:59.446589+00:00",
+      "duration_s": 0.05634125000506174,
+      "exit_code": 0,
+      "log": "automated/ruff-check.log"
+    },
+    "ruff-format": {
+      "command": [
+        "uv",
+        "run",
+        "ruff",
+        "format",
+        "--check",
+        "."
+      ],
+      "started_at": "2026-11-08T16:56:59.503194+00:00",
+      "duration_s": 0.021428749998449348,
+      "exit_code": 0,
+      "log": "automated/ruff-format.log"
+    },
+    "lock-check": {
+      "command": [
+        "uv",
+        "lock",
+        "--check"
+      ],
+      "started_at": "2026-11-08T16:56:59.524917+00:00",
+      "duration_s": 0.014157207995594945,
+      "exit_code": 0,
+      "log": "automated/lock-check.log"
+    },
+    "diff-check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-11-08T16:56:59.539348+00:00",
+      "duration_s": 0.014825666999968234,
+      "exit_code": 0,
+      "log": "automated/diff-check.log"
+    }
+  },
+  "live_runs": [
+    {
+      "trial": 1,
+      "route": "direct",
+      "started_at": "2026-11-08T16:57:02.309880+00:00",
+      "command": [
+        "uv",
+        "run",
+        "inference-load-lab",
+        "bench",
+        "--base-url",
+        "https://zcpg63vpw4833r-8000.proxy.runpod.net",
+        "--requests",
+        "100",
+        "--concurrency",
+        "4",
+        "16",
+        "--warmup",
+        "16",
+        "--max-tokens",
+        "128",
+        "--seed",
+        "0",
+        "--timeout",
+        "120",
+        "--prompts-file",
+        "data/prompts.jsonl",
+        "--server-config",
+        "configs/vllm.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/live/trial-01/direct"
+      ],
+      "output_dir": "live/trial-01/direct",
+      "metrics_before": {
+        "timestamp": "2026-11-08T16:57:02.751414+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-01-direct-before.prom"
+      },
+      "ended_at": "2026-11-08T16:57:53.151910+00:00",
+      "wall_duration_s": 50.40737533399806,
+      "exit_code": 0,
+      "log": "live/trial-01/direct-console.log",
+      "metrics_after": {
+        "timestamp": "2026-11-08T16:57:53.689349+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-01-direct-after.prom"
+      }
+    },
+    {
+      "trial": 1,
+      "route": "fifo",
+      "started_at": "2026-11-08T16:57:53.696118+00:00",
+      "command": [
+        "uv",
+        "run",
+        "inference-load-lab",
+        "bench",
+        "--base-url",
+        "http://127.0.0.1:50967",
+        "--requests",
+        "100",
+        "--concurrency",
+        "4",
+        "16",
+        "--warmup",
+        "16",
+        "--max-tokens",
+        "128",
+        "--seed",
+        "0",
+        "--timeout",
+        "120",
+        "--prompts-file",
+        "data/prompts.jsonl",
+        "--server-config",
+        "configs/vllm.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/live/trial-01/fifo"
+      ],
+      "output_dir": "live/trial-01/fifo",
+      "metrics_before": {
+        "timestamp": "2026-11-08T16:57:53.905282+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-01-fifo-before.prom"
+      },
+      "ended_at": "2026-11-08T16:59:07.741841+00:00",
+      "wall_duration_s": 73.84013337500073,
+      "exit_code": 0,
+      "log": "live/trial-01/fifo-console.log",
+      "metrics_after": {
+        "timestamp": "2026-11-08T16:59:08.106810+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-01-fifo-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "route": "fifo",
+      "started_at": "2026-11-08T16:59:08.115535+00:00",
+      "command": [
+        "uv",
+        "run",
+        "inference-load-lab",
+        "bench",
+        "--base-url",
+        "http://127.0.0.1:50967",
+        "--requests",
+        "100",
+        "--concurrency",
+        "4",
+        "16",
+        "--warmup",
+        "16",
+        "--max-tokens",
+        "128",
+        "--seed",
+        "0",
+        "--timeout",
+        "120",
+        "--prompts-file",
+        "data/prompts.jsonl",
+        "--server-config",
+        "configs/vllm.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/live/trial-02/fifo"
+      ],
+      "output_dir": "live/trial-02/fifo",
+      "metrics_before": {
+        "timestamp": "2026-11-08T16:59:08.344288+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-02-fifo-before.prom"
+      },
+      "ended_at": "2026-11-08T17:00:21.581748+00:00",
+      "wall_duration_s": 73.23617908299639,
+      "exit_code": 0,
+      "log": "live/trial-02/fifo-console.log",
+      "metrics_after": {
+        "timestamp": "2026-11-08T17:00:21.962193+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-02-fifo-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "route": "direct",
+      "started_at": "2026-11-08T17:00:21.970557+00:00",
+      "command": [
+        "uv",
+        "run",
+        "inference-load-lab",
+        "bench",
+        "--base-url",
+        "https://zcpg63vpw4833r-8000.proxy.runpod.net",
+        "--requests",
+        "100",
+        "--concurrency",
+        "4",
+        "16",
+        "--warmup",
+        "16",
+        "--max-tokens",
+        "128",
+        "--seed",
+        "0",
+        "--timeout",
+        "120",
+        "--prompts-file",
+        "data/prompts.jsonl",
+        "--server-config",
+        "configs/vllm.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/live/trial-02/direct"
+      ],
+      "output_dir": "live/trial-02/direct",
+      "metrics_before": {
+        "timestamp": "2026-11-08T17:00:22.179468+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-02-direct-before.prom"
+      },
+      "ended_at": "2026-11-08T17:01:13.428650+00:00",
+      "wall_duration_s": 51.247024374999455,
+      "exit_code": 0,
+      "log": "live/trial-02/direct-console.log",
+      "metrics_after": {
+        "timestamp": "2026-11-08T17:01:14.166620+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-02-direct-after.prom"
+      }
+    },
+    {
+      "trial": 3,
+      "route": "direct",
+      "started_at": "2026-11-08T17:01:14.176274+00:00",
+      "command": [
+        "uv",
+        "run",
+        "inference-load-lab",
+        "bench",
+        "--base-url",
+        "https://zcpg63vpw4833r-8000.proxy.runpod.net",
+        "--requests",
+        "100",
+        "--concurrency",
+        "4",
+        "16",
+        "--warmup",
+        "16",
+        "--max-tokens",
+        "128",
+        "--seed",
+        "0",
+        "--timeout",
+        "120",
+        "--prompts-file",
+        "data/prompts.jsonl",
+        "--server-config",
+        "configs/vllm.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/live/trial-03/direct"
+      ],
+      "output_dir": "live/trial-03/direct",
+      "metrics_before": {
+        "timestamp": "2026-11-08T17:01:14.399504+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-03-direct-before.prom"
+      },
+      "ended_at": "2026-11-08T17:02:05.056533+00:00",
+      "wall_duration_s": 50.65564508299576,
+      "exit_code": 0,
+      "log": "live/trial-03/direct-console.log",
+      "metrics_after": {
+        "timestamp": "2026-11-08T17:02:05.597807+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-03-direct-after.prom"
+      }
+    },
+    {
+      "trial": 3,
+      "route": "fifo",
+      "started_at": "2026-11-08T17:02:05.607560+00:00",
+      "command": [
+        "uv",
+        "run",
+        "inference-load-lab",
+        "bench",
+        "--base-url",
+        "http://127.0.0.1:50967",
+        "--requests",
+        "100",
+        "--concurrency",
+        "4",
+        "16",
+        "--warmup",
+        "16",
+        "--max-tokens",
+        "128",
+        "--seed",
+        "0",
+        "--timeout",
+        "120",
+        "--prompts-file",
+        "data/prompts.jsonl",
+        "--server-config",
+        "configs/vllm.json",
+        "--output-dir",
+        "/Users/samir.sarwar/inference_load/reports/validation-20261108T165657.214596Z/live/trial-03/fifo"
+      ],
+      "output_dir": "live/trial-03/fifo",
+      "metrics_before": {
+        "timestamp": "2026-11-08T17:02:05.822982+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-03-fifo-before.prom"
+      },
+      "ended_at": "2026-11-08T17:03:18.797563+00:00",
+      "wall_duration_s": 72.97215845800383,
+      "exit_code": 0,
+      "log": "live/trial-03/fifo-console.log",
+      "metrics_after": {
+        "timestamp": "2026-11-08T17:03:19.343472+00:00",
+        "http_status": 200,
+        "file": "live/metrics/trial-03-fifo-after.prom"
+      }
+    }
+  ],
+  "automated_totals": {
+    "tests": 41,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "gateway": {
+    "url": "http://127.0.0.1:50967",
+    "command": [
+      "uv",
+      "run",
+      "inference-load-lab",
+      "serve",
+      "--upstream-base-url",
+      "https://zcpg63vpw4833r-8000.proxy.runpod.net",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "50967",
+      "--concurrency",
+      "4",
+      "--queue-size",
+      "64",
+      "--queue-timeout",
+      "30",
+      "--upstream-timeout",
+      "120"
+    ],
+    "concurrency": 4,
+    "queue_size": 64
+  },
+  "ended_at": "2026-11-08T17:03:19.594316+00:00",
+  "local_gateway_stopped": true,
+  "tested_source_manifest_verified": true,
+  "live_totals": {
+    "measured_requests": 1200,
+    "warmup_requests": 192,
+    "failed_requests": 0
+  }
+}
