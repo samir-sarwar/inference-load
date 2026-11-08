@@ -17,6 +17,11 @@ dependencies = [
 [project.scripts]
 inference-load-lab = "inference_load_lab:main"
 
+[project.optional-dependencies]
+analysis = [
+    "matplotlib>=3.11.2",
+]
+
 [build-system]
 requires = ["uv_build>=0.11.32,<0.12.0"]
 build-backend = "uv_build"

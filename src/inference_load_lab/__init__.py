@@ -7,6 +7,12 @@ def main() -> None:
         experiment_main(sys.argv[2:])
         return
 
+    if sys.argv[1:2] == ["analyze"]:
+        from inference_load_lab.analysis import main as analysis_main
+
+        analysis_main(sys.argv[2:])
+        return
+
     if sys.argv[1:2] == ["serve"]:
         from inference_load_lab.gateway import main as gateway_main
 

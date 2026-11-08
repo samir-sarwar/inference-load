@@ -139,7 +139,7 @@ async def generate(
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        epilog="Other commands: inference-load-lab bench --help; inference-load-lab serve --help",
+        epilog="Other commands: inference-load-lab {bench,serve,experiment,analyze} --help",
     )
     parser.add_argument("--base-url", default=os.environ.get("VLLM_BASE_URL"))
     parser.add_argument("--model", default=os.environ.get("VLLM_MODEL", "qwen3-4b"))
