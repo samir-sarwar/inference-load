@@ -1,0 +1,10 @@
+{
+  "containerDiskInGb": 40,
+  "costPerHr": 0.59,
+  "gpuCount": 1,
+  "gpuId": "NVIDIA A40",
+  "id": "2ci8di3i71oyb1",
+  "imageName": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+  "name": "inference-load-lab-final",
+  "volumeInGb": 0
+}

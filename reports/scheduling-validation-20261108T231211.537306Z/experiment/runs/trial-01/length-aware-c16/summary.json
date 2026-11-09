@@ -1,0 +1,213 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": null,
+      "mode": "burst",
+      "planned_requests": 300,
+      "warmup_requests": 32,
+      "warmup_concurrency": 16,
+      "arrival_span_s": 4,
+      "peak_in_flight": 249,
+      "recorded_requests": 300,
+      "completed_requests": 300,
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "http_status_counts": {
+        "200": 300
+      },
+      "error_types": {},
+      "duration_s": 54.4236892919871,
+      "e2e_ms": {
+        "p50": 7291.523249994498,
+        "p95": 43644.02438160396
+      },
+      "ttft_ms": {
+        "p50": 6677.221625497623,
+        "p95": 33722.43244795391,
+        "samples": 300
+      },
+      "tpot_ms": {
+        "p50": 18.702130354687405,
+        "p95": 19.437282114306672,
+        "samples": 300
+      },
+      "missing_token_usage": 0,
+      "dispatch_lag_ms": {
+        "p50": 28.830145492975134,
+        "p95": 72.9956083421712,
+        "max": 114.62987499544397,
+        "samples": 300
+      },
+      "arrival_e2e_ms": {
+        "p50": 7331.867229491763,
+        "p95": 43651.61547528842,
+        "samples": 300
+      },
+      "request_manager_configs": [
+        {
+          "aging_seconds": 30.0,
+          "concurrency_limit": 16,
+          "cost_estimator": "ceil(utf8_content_bytes / 4) + output_budget",
+          "policy": "length-aware",
+          "queue_capacity": 512,
+          "queue_timeout_s": 120.0,
+          "upstream_timeout_s": 120.0
+        }
+      ],
+      "queue_wait_ms": {
+        "p50": 6464.034375499999,
+        "p95": 33394.74572915,
+        "samples": 300,
+        "max": 42587.556416
+      },
+      "total_output_tokens": 38400,
+      "output_tokens_per_second": 705.5750997324193,
+      "successful_requests_per_second": 5.512305466659526,
+      "aged_promotions": 24,
+      "by_class": {
+        "long": {
+          "recorded_requests": 60,
+          "completed_requests": 60,
+          "successful_requests": 60,
+          "failed_requests": 0,
+          "dropped_requests": 0,
+          "http_status_counts": {
+            "200": 60
+          },
+          "error_types": {},
+          "duration_s": 54.4236892919871,
+          "e2e_ms": {
+            "p50": 31580.935416503053,
+            "p95": 51332.32454970057
+          },
+          "ttft_ms": {
+            "p50": 21765.32158300688,
+            "p95": 42190.14331039289,
+            "samples": 60
+          },
+          "tpot_ms": {
+            "p50": 19.186793134065706,
+            "p95": 19.44347556673806,
+            "samples": 60
+          },
+          "missing_token_usage": 0,
+          "dispatch_lag_ms": {
+            "p50": 31.03781249228632,
+            "p95": 72.2007687392761,
+            "max": 92.40741698886268,
+            "samples": 60
+          },
+          "arrival_e2e_ms": {
+            "p50": 31649.13537499524,
+            "p95": 51365.74039164843,
+            "samples": 60
+          },
+          "request_manager_configs": [
+            {
+              "aging_seconds": 30.0,
+              "concurrency_limit": 16,
+              "cost_estimator": "ceil(utf8_content_bytes / 4) + output_budget",
+              "policy": "length-aware",
+              "queue_capacity": 512,
+              "queue_timeout_s": 120.0,
+              "upstream_timeout_s": 120.0
+            }
+          ],
+          "queue_wait_ms": {
+            "p50": 21325.486979,
+            "p95": 41781.19654585,
+            "samples": 60,
+            "max": 42587.556416
+          },
+          "total_output_tokens": 30720,
+          "output_tokens_per_second": 564.4600797859355,
+          "successful_requests_per_second": 1.1024610933319052,
+          "aged_promotions": 24
+        },
+        "short": {
+          "recorded_requests": 240,
+          "completed_requests": 240,
+          "successful_requests": 240,
+          "failed_requests": 0,
+          "dropped_requests": 0,
+          "http_status_counts": {
+            "200": 240
+          },
+          "error_types": {},
+          "duration_s": 54.4236892919871,
+          "e2e_ms": {
+            "p50": 6682.719854499737,
+            "p95": 12563.57547464795
+          },
+          "ttft_ms": {
+            "p50": 6061.191854489152,
+            "p95": 11995.092787496833,
+            "samples": 240
+          },
+          "tpot_ms": {
+            "p50": 18.64981720967579,
+            "p95": 19.278645095267077,
+            "samples": 240
+          },
+          "missing_token_usage": 0,
+          "dispatch_lag_ms": {
+            "p50": 28.658770490437746,
+            "p95": 73.77888154660467,
+            "max": 114.62987499544397,
+            "samples": 240
+          },
+          "arrival_e2e_ms": {
+            "p50": 6707.243666489376,
+            "p95": 12645.731898240774,
+            "samples": 240
+          },
+          "request_manager_configs": [
+            {
+              "aging_seconds": 30.0,
+              "concurrency_limit": 16,
+              "cost_estimator": "ceil(utf8_content_bytes / 4) + output_budget",
+              "policy": "length-aware",
+              "queue_capacity": 512,
+              "queue_timeout_s": 120.0,
+              "upstream_timeout_s": 120.0
+            }
+          ],
+          "queue_wait_ms": {
+            "p50": 5805.734625,
+            "p95": 11767.47540145,
+            "samples": 240,
+            "max": 12984.641083
+          },
+          "total_output_tokens": 7680,
+          "output_tokens_per_second": 141.11501994648387,
+          "successful_requests_per_second": 4.409844373327621,
+          "aged_promotions": 0
+        }
+      },
+      "gpu": {
+        "source": "runpod_graphql_latest_telemetry",
+        "status": "ok",
+        "interval_s": 2.0,
+        "window_duration_s": 54.42379191699729,
+        "window_started_at": "2026-11-08T23:13:48.090591+00:00",
+        "successful_polls": 28,
+        "unique_samples": 1,
+        "failed_polls": 0,
+        "outside_window_polls_excluded": 10,
+        "duplicate_polls_excluded": 17,
+        "gpus": [
+          {
+            "id": "GPU-18d3665f-27c7-ddf8-82db-2864f55b46cc",
+            "samples": 1,
+            "mean_util_percent": 94,
+            "max_util_percent": 94
+          }
+        ]
+      },
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T23:14:42.531979+00:00"
+}

@@ -1,0 +1,103 @@
+{
+  "base_url": "http://127.0.0.1:61978",
+  "model": "qwen3-4b",
+  "requests": 300,
+  "concurrencies": [],
+  "warmup": 32,
+  "max_tokens": 128,
+  "prompts": [
+    "Define KV caching in one sentence.",
+    "Define time to first token in one sentence.",
+    "Explain continuous batching in one sentence.",
+    "What does a FIFO queue do? Give a brief answer.",
+    "Define GPU memory bandwidth in one sentence.",
+    "What is request throughput? Answer briefly.",
+    "Explain tail latency in one sentence.",
+    "What does backpressure do in a server? Answer briefly.",
+    "Explain how an LLM inference server works from receiving an HTTP request through tokenization, prefill, continuous batching, KV-cache allocation, autoregressive decoding, streaming, and cleanup. Describe how concurrency, token budgets, queueing, GPU memory bandwidth, cancellation, and timeouts affect latency and throughput. Use a detailed technical explanation with concrete examples.",
+    "Explain the design of a production LLM serving benchmark in detail. Discuss closed-loop clients, independent arrival schedules, warmup, output lengths, seeded prompt order, first-token timing, time per output token, percentile latency, throughput denominators, overload rejection, queue fairness, GPU sampling, and controlled comparisons. Include examples of misleading measurements and how to avoid them."
+  ],
+  "seed": 0,
+  "timeout": 120,
+  "mode": "burst",
+  "request_rate": null,
+  "burst_size": 60,
+  "burst_interval": 1,
+  "max_in_flight": 512,
+  "ignore_eos": true,
+  "prompt_classes": [
+    "short",
+    "short",
+    "short",
+    "short",
+    "short",
+    "short",
+    "short",
+    "short",
+    "long",
+    "long"
+  ],
+  "prompt_max_tokens": [
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    512,
+    512
+  ],
+  "started_at": "2026-11-08T23:20:16.422433+00:00",
+  "load_model": "open_loop",
+  "arrival_pattern": "burst",
+  "temperature": 0,
+  "percentile_method": "linear interpolation at (n - 1) * quantile",
+  "python_version": "3.12.12",
+  "httpx_version": "0.28.1",
+  "git": {
+    "commit": "e1c8a5f7ef6a722439be1b6a89c741e7999e87ee",
+    "dirty": true
+  },
+  "declared_server_config": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "image": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+    "gpu": "NVIDIA A40",
+    "min_cuda_version": "12.9",
+    "arguments": [
+      "Qwen/Qwen3-4B-Instruct-2507",
+      "--revision",
+      "cdbee75f17c01a7cc42f958dc650907174af0554",
+      "--served-model-name",
+      "qwen3-4b",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "16",
+      "--dtype",
+      "auto",
+      "--gpu-memory-utilization",
+      "0.90",
+      "--generation-config",
+      "vllm"
+    ],
+    "environment_variables": [
+      "VLLM_API_KEY",
+      "HF_HUB_DISABLE_TELEMETRY"
+    ]
+  },
+  "tpot_definition": "(client e2e_ms - client ttft_ms) / (server output_tokens - 1)",
+  "gpu_telemetry": {
+    "source": "runpod_graphql_latest_telemetry",
+    "pod_id": "2ci8di3i71oyb1",
+    "interval_s": 2.0,
+    "file": "gpu.jsonl"
+  },
+  "prompt_sha256": "a779ff847333e2cae83d4c3b60387e1646f626bec00612cdcd748e777aebf731"
+}

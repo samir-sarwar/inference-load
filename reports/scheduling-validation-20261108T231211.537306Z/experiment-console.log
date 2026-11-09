@@ -1,0 +1,17 @@
+Trial 1/4 fifo-c16: starting.
+  ok: E2E p95=42578.54567884715 ms; tokens/s=698.0384051253318
+Trial 1/4 length-aware-c16: starting.
+  ok: E2E p95=43644.02438160396 ms; tokens/s=705.5750997324193
+Trial 2/4 length-aware-c16: starting.
+  ok: E2E p95=43509.62027675705 ms; tokens/s=708.1392169287398
+Trial 2/4 fifo-c16: starting.
+  ok: E2E p95=42568.55433299352 ms; tokens/s=699.3089627786428
+Trial 3/4 length-aware-c16: starting.
+  ok: E2E p95=43828.24188539962 ms; tokens/s=704.4322826483884
+Trial 3/4 fifo-c16: starting.
+  ok: E2E p95=42390.17187290738 ms; tokens/s=700.6625441751924
+Trial 4/4 fifo-c16: starting.
+  ok: E2E p95=42031.385622603564 ms; tokens/s=705.0047203373459
+Trial 4/4 length-aware-c16: starting.
+  ok: E2E p95=43613.60626075402 ms; tokens/s=704.9397638194398
+Experiment saved: /Users/samir.sarwar/inference_load/reports/scheduling-validation-20261108T231211.537306Z/experiment

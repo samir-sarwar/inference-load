@@ -1,0 +1,207 @@
+{
+  "status": "ok",
+  "runs": [
+    {
+      "concurrency": null,
+      "mode": "burst",
+      "planned_requests": 300,
+      "warmup_requests": 32,
+      "warmup_concurrency": 16,
+      "arrival_span_s": 4,
+      "peak_in_flight": 266,
+      "recorded_requests": 300,
+      "completed_requests": 300,
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "dropped_requests": 0,
+      "http_status_counts": {
+        "200": 300
+      },
+      "error_types": {},
+      "duration_s": 54.91135112500342,
+      "e2e_ms": {
+        "p50": 23052.968145500927,
+        "p95": 42568.55433299352
+      },
+      "ttft_ms": {
+        "p50": 21117.956188005337,
+        "p95": 40505.647670506005,
+        "samples": 300
+      },
+      "tpot_ms": {
+        "p50": 19.138351614192455,
+        "p95": 19.702322782165627,
+        "samples": 300
+      },
+      "missing_token_usage": 0,
+      "dispatch_lag_ms": {
+        "p50": 35.950687000877224,
+        "p95": 69.98785625546589,
+        "max": 78.67870799964294,
+        "samples": 300
+      },
+      "arrival_e2e_ms": {
+        "p50": 23102.621645506588,
+        "p95": 42640.44077644867,
+        "samples": 300
+      },
+      "request_manager_configs": [
+        {
+          "concurrency_limit": 16,
+          "policy": "fifo",
+          "queue_capacity": 512,
+          "queue_timeout_s": 120.0,
+          "upstream_timeout_s": 120.0
+        }
+      ],
+      "queue_wait_ms": {
+        "p50": 20895.1170835,
+        "p95": 40322.18026635,
+        "samples": 300,
+        "max": 42180.262291
+      },
+      "total_output_tokens": 38400,
+      "output_tokens_per_second": 699.3089627786428,
+      "successful_requests_per_second": 5.463351271708147,
+      "aged_promotions": 0,
+      "by_class": {
+        "long": {
+          "recorded_requests": 60,
+          "completed_requests": 60,
+          "successful_requests": 60,
+          "failed_requests": 0,
+          "dropped_requests": 0,
+          "http_status_counts": {
+            "200": 60
+          },
+          "error_types": {},
+          "duration_s": 54.91135112500342,
+          "e2e_ms": {
+            "p50": 29019.023520500923,
+            "p95": 49761.034653557
+          },
+          "ttft_ms": {
+            "p50": 19142.24514549278,
+            "p95": 40440.512410401425,
+            "samples": 60
+          },
+          "tpot_ms": {
+            "p50": 19.198114767124665,
+            "p95": 19.483989199398266,
+            "samples": 60
+          },
+          "missing_token_usage": 0,
+          "dispatch_lag_ms": {
+            "p50": 36.40399949654238,
+            "p95": 70.03100625515799,
+            "max": 75.37095800216775,
+            "samples": 60
+          },
+          "arrival_e2e_ms": {
+            "p50": 29043.130666497746,
+            "p95": 49821.216278499924,
+            "samples": 60
+          },
+          "request_manager_configs": [
+            {
+              "concurrency_limit": 16,
+              "policy": "fifo",
+              "queue_capacity": 512,
+              "queue_timeout_s": 120.0,
+              "upstream_timeout_s": 120.0
+            }
+          ],
+          "queue_wait_ms": {
+            "p50": 18861.299979000003,
+            "p95": 40255.9687854,
+            "samples": 60,
+            "max": 41448.0575
+          },
+          "total_output_tokens": 30720,
+          "output_tokens_per_second": 559.4471702229142,
+          "successful_requests_per_second": 1.0926702543416293,
+          "aged_promotions": 0
+        },
+        "short": {
+          "recorded_requests": 240,
+          "completed_requests": 240,
+          "successful_requests": 240,
+          "failed_requests": 0,
+          "dropped_requests": 0,
+          "http_status_counts": {
+            "200": 240
+          },
+          "error_types": {},
+          "duration_s": 54.91135112500342,
+          "e2e_ms": {
+            "p50": 22131.964166997932,
+            "p95": 41294.74997019861
+          },
+          "ttft_ms": {
+            "p50": 21533.813750000263,
+            "p95": 40705.4750934476,
+            "samples": 240
+          },
+          "tpot_ms": {
+            "p50": 19.11245430646006,
+            "p95": 19.754458524403162,
+            "samples": 240
+          },
+          "missing_token_usage": 0,
+          "dispatch_lag_ms": {
+            "p50": 35.87852050259244,
+            "p95": 69.34379520171204,
+            "max": 78.67870799964294,
+            "samples": 240
+          },
+          "arrival_e2e_ms": {
+            "p50": 22172.65495799802,
+            "p95": 41357.966303505236,
+            "samples": 240
+          },
+          "request_manager_configs": [
+            {
+              "concurrency_limit": 16,
+              "policy": "fifo",
+              "queue_capacity": 512,
+              "queue_timeout_s": 120.0,
+              "upstream_timeout_s": 120.0
+            }
+          ],
+          "queue_wait_ms": {
+            "p50": 21317.6215625,
+            "p95": 40509.57015415,
+            "samples": 240,
+            "max": 42180.262291
+          },
+          "total_output_tokens": 7680,
+          "output_tokens_per_second": 139.86179255572856,
+          "successful_requests_per_second": 4.370681017366517,
+          "aged_promotions": 0
+        }
+      },
+      "gpu": {
+        "source": "runpod_graphql_latest_telemetry",
+        "status": "ok",
+        "interval_s": 2.0,
+        "window_duration_s": 54.91157399999793,
+        "window_started_at": "2026-11-08T23:16:00.802872+00:00",
+        "successful_polls": 28,
+        "unique_samples": 2,
+        "failed_polls": 0,
+        "outside_window_polls_excluded": 9,
+        "duplicate_polls_excluded": 17,
+        "gpus": [
+          {
+            "id": "GPU-18d3665f-27c7-ddf8-82db-2864f55b46cc",
+            "samples": 2,
+            "mean_util_percent": 95,
+            "max_util_percent": 95
+          }
+        ]
+      },
+      "status": "ok"
+    }
+  ],
+  "ended_at": "2026-11-08T23:16:55.734790+00:00"
+}

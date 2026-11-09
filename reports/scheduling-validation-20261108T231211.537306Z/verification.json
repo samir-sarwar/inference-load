@@ -1,0 +1,30 @@
+{
+  "verified_at": "2026-11-08T23:31:50.884978+00:00",
+  "source_hashes_match": true,
+  "automated_tests": 100,
+  "measured_requests": 2400,
+  "warmup_requests": 256,
+  "short_requests": 1920,
+  "long_requests": 480,
+  "failed_requests": 0,
+  "dropped_requests": 0,
+  "fixed_token_counts_match": true,
+  "observed_cost_scores_match": true,
+  "fifo_order_confirmed": true,
+  "length_aware_reordered_requests_by_trial": [
+    284,
+    284,
+    284,
+    283
+  ],
+  "aged_long_promotions_by_trial": [
+    24,
+    24,
+    24,
+    24
+  ],
+  "temporary_gateways_stopped": 8,
+  "gpu_stopped": true,
+  "credential_scan_passed": true,
+  "figures_visually_checked": 4
+}

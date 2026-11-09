@@ -1,0 +1,233 @@
+{
+  "status": "complete",
+  "started_at": "2026-11-08T23:12:27.220811+00:00",
+  "spec": {
+    "trials": 4,
+    "baseline": "fifo-c16",
+    "candidate": "length-aware-c16",
+    "target_class": "short",
+    "variants": [
+      {
+        "name": "fifo-c16",
+        "policy": "fifo",
+        "concurrency": 16
+      },
+      {
+        "name": "length-aware-c16",
+        "policy": "length-aware",
+        "concurrency": 16,
+        "aging_seconds": 30
+      }
+    ],
+    "queue_size": 512,
+    "queue_timeout": 120,
+    "prompts_file": "data/mixed-prompts.jsonl",
+    "server_config": "configs/vllm.json",
+    "require_gpu_telemetry": true,
+    "workload": {
+      "mode": "burst",
+      "model": "qwen3-4b",
+      "requests": 300,
+      "burst_size": 60,
+      "burst_interval": 1,
+      "max_in_flight": 512,
+      "warmup": 32,
+      "max_tokens": 128,
+      "ignore_eos": true,
+      "seed": 0,
+      "timeout": 120
+    }
+  },
+  "git": {
+    "commit": "e1c8a5f7ef6a722439be1b6a89c741e7999e87ee",
+    "dirty": true
+  },
+  "server_config": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "image": "vllm/vllm-openai:v0.11.2@sha256:2c908d5a84ed251b6a17d179f42d06df1aff353007779ac5eecd8a0ea3fe9331",
+    "gpu": "NVIDIA A40",
+    "min_cuda_version": "12.9",
+    "arguments": [
+      "Qwen/Qwen3-4B-Instruct-2507",
+      "--revision",
+      "cdbee75f17c01a7cc42f958dc650907174af0554",
+      "--served-model-name",
+      "qwen3-4b",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "16",
+      "--dtype",
+      "auto",
+      "--gpu-memory-utilization",
+      "0.90",
+      "--generation-config",
+      "vllm"
+    ],
+    "environment_variables": [
+      "VLLM_API_KEY",
+      "HF_HUB_DISABLE_TELEMETRY"
+    ]
+  },
+  "gpu_pod_id": "2ci8di3i71oyb1",
+  "runs": [
+    {
+      "trial": 1,
+      "position": 1,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T23:12:28.461551+00:00",
+      "output_dir": "runs/trial-01/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:12:29.219034+00:00",
+        "file": "trial-01-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:13:36.407422+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:13:36.951086+00:00",
+        "file": "trial-01-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 1,
+      "position": 2,
+      "variant": "length-aware-c16",
+      "started_at": "2026-11-08T23:13:36.955022+00:00",
+      "output_dir": "runs/trial-01/length-aware-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:13:37.173255+00:00",
+        "file": "trial-01-length-aware-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:14:42.698714+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:14:43.048459+00:00",
+        "file": "trial-01-length-aware-c16-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "position": 1,
+      "variant": "length-aware-c16",
+      "started_at": "2026-11-08T23:14:43.052818+00:00",
+      "output_dir": "runs/trial-02/length-aware-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:14:43.258451+00:00",
+        "file": "trial-02-length-aware-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:15:48.863630+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:15:49.232235+00:00",
+        "file": "trial-02-length-aware-c16-after.prom"
+      }
+    },
+    {
+      "trial": 2,
+      "position": 2,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T23:15:49.236008+00:00",
+      "output_dir": "runs/trial-02/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:15:49.848072+00:00",
+        "file": "trial-02-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:16:55.942191+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:16:56.667780+00:00",
+        "file": "trial-02-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 3,
+      "position": 1,
+      "variant": "length-aware-c16",
+      "started_at": "2026-11-08T23:16:56.670313+00:00",
+      "output_dir": "runs/trial-03/length-aware-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:16:56.891869+00:00",
+        "file": "trial-03-length-aware-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:18:02.441704+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:18:02.823314+00:00",
+        "file": "trial-03-length-aware-c16-after.prom"
+      }
+    },
+    {
+      "trial": 3,
+      "position": 2,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T23:18:02.827739+00:00",
+      "output_dir": "runs/trial-03/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:18:03.043960+00:00",
+        "file": "trial-03-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:19:08.868926+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:19:09.419914+00:00",
+        "file": "trial-03-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 4,
+      "position": 1,
+      "variant": "fifo-c16",
+      "started_at": "2026-11-08T23:19:09.421970+00:00",
+      "output_dir": "runs/trial-04/fifo-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:19:09.646088+00:00",
+        "file": "trial-04-fifo-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:20:15.170491+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:20:15.898078+00:00",
+        "file": "trial-04-fifo-c16-after.prom"
+      }
+    },
+    {
+      "trial": 4,
+      "position": 2,
+      "variant": "length-aware-c16",
+      "started_at": "2026-11-08T23:20:15.902916+00:00",
+      "output_dir": "runs/trial-04/length-aware-c16",
+      "metrics_before": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:20:16.112248+00:00",
+        "file": "trial-04-length-aware-c16-before.prom"
+      },
+      "ended_at": "2026-11-08T23:21:21.723240+00:00",
+      "status": "ok",
+      "metrics_after": {
+        "http_status": 200,
+        "observed_at": "2026-11-08T23:21:22.442997+00:00",
+        "file": "trial-04-length-aware-c16-after.prom"
+      }
+    }
+  ],
+  "ended_at": "2026-11-08T23:21:22.446534+00:00"
+}
