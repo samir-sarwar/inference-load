@@ -19,7 +19,7 @@ import httpx
 from inference_load_lab.benchmark import (
     BenchmarkConfig,
     git_state,
-    load_prompts,
+    load_workload,
     redact_key,
     run_suite,
     utc_now,
@@ -57,6 +57,8 @@ def validate_spec(spec, base_url):
                 max_queue=spec["queue_size"],
                 queue_timeout=spec["queue_timeout"],
                 upstream_timeout=spec["workload"]["timeout"],
+                policy=variant.get("policy", "fifo"),
+                aging_seconds=variant.get("aging_seconds", 10.0),
             )
     if spec["baseline"] not in names or spec["candidate"] not in names:
         raise ValueError("Baseline and candidate must name configured variants.")
@@ -94,6 +96,10 @@ async def route(variant, spec, upstream, upstream_key, frontend_key, log_path):
         str(spec["queue_timeout"]),
         "--upstream-timeout",
         str(spec["workload"]["timeout"]),
+        "--policy",
+        variant.get("policy", "fifo"),
+        "--aging-seconds",
+        str(variant.get("aging_seconds", 10.0)),
     ]
     with log_path.open("w") as log:
         process = await asyncio.create_subprocess_exec(
@@ -141,14 +147,18 @@ async def run_experiment(
     validate_spec(spec, base_url)
     if spec.get("require_gpu_telemetry") and not gpu_pod_id:
         raise ValueError("This experiment requires --gpu-pod-id for GPU measurements.")
-    prompts = load_prompts(Path(spec["prompts_file"]))
+    prompt_settings = load_workload(Path(spec["prompts_file"]))
     workload = dict(spec["workload"])
-    workload["concurrencies"] = tuple(workload["concurrencies"])
-    template = BenchmarkConfig(base_url, prompts=prompts, **workload)
-    if template.mode != "concurrency" or len(template.concurrencies) != 1:
+    workload["concurrencies"] = tuple(workload.get("concurrencies", [32]))
+    if workload.get("mode", "concurrency") != "concurrency":
+        workload["concurrencies"] = ()
+    template = BenchmarkConfig(base_url, **prompt_settings, **workload)
+    if template.mode == "concurrency" and len(template.concurrencies) != 1:
         raise ValueError(
-            "Controlled experiments currently require one closed-loop concurrency level."
+            "Controlled concurrency experiments require one level per run."
         )
+    if spec.get("target_class") and spec["target_class"] not in template.prompt_classes:
+        raise ValueError("Target class is absent from the workload.")
     server_config = json.loads(Path(spec["server_config"]).read_text())
     deployment = None
     if deployment_info:
@@ -296,7 +306,11 @@ async def run_experiment(
                             if variant.get("concurrency") is None
                             else frontend_key
                         )
-                        maximum = max(config.concurrencies)
+                        maximum = (
+                            max(config.concurrencies)
+                            if config.mode == "concurrency"
+                            else config.max_in_flight
+                        )
                         async with (
                             httpx.AsyncClient(
                                 timeout=httpx.Timeout(

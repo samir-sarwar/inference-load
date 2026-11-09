@@ -96,7 +96,13 @@ def completed_experiment(tmp_path_factory):
             body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             calls.append((self.headers["Authorization"], body))
             first = b'data: {"choices":[{"delta":{"content":"local result"}}]}\n\n'
-            last = b'data: {"choices":[],"usage":{"completion_tokens":3}}\n\ndata: [DONE]\n\n'
+            last = (
+                "data: "
+                + json.dumps(
+                    {"choices": [], "usage": {"completion_tokens": body["max_tokens"]}}
+                )
+                + "\n\ndata: [DONE]\n\n"
+            ).encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Content-Length", str(len(first) + len(last)))
@@ -139,13 +145,62 @@ def completed_experiment(tmp_path_factory):
             timeout=60,
         )
         assert result.returncode == 0, result.stdout + result.stderr
+        mixed = root / "mixed.jsonl"
+        mixed.write_text(
+            '{"prompt":"short","class":"short","max_tokens":3}\n{"prompt":"long","class":"long","max_tokens":6}\n'
+        )
+        scheduling = {
+            **spec,
+            "trials": 4,
+            "target_class": "short",
+            "candidate": "length-aware-c1",
+            "variants": [
+                {"name": "fifo-c1", "concurrency": 1},
+                {
+                    "name": "length-aware-c1",
+                    "concurrency": 1,
+                    "policy": "length-aware",
+                    "aging_seconds": 1,
+                },
+            ],
+            "prompts_file": str(mixed),
+            "workload": {
+                **spec["workload"],
+                "mode": "burst",
+                "requests": 8,
+                "burst_size": 8,
+                "max_in_flight": 16,
+            },
+        }
+        scheduling_path = root / "scheduling.json"
+        scheduling_path.write_text(json.dumps(scheduling))
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "from inference_load_lab import main; main()",
+                "experiment",
+                "--config",
+                str(scheduling_path),
+                "--base-url",
+                f"http://127.0.0.1:{server.server_port}",
+                "--output-dir",
+                str(root / "scheduling"),
+            ],
+            env=env,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
     finally:
         server.shutdown()
         server.server_close()
         thread.join(timeout=3)
     assert (
-        len(calls) == 45
-    )  # Nine runs, each with one warmup and four measured requests.
+        len(calls) == 117
+    )  # 9 * (1 + 4) original requests, plus 8 * (1 + 8) mixed-workload requests.
     assert all(
         key == "Bearer private-experiment-key" and body["ignore_eos"]
         for key, body in calls
@@ -177,6 +232,23 @@ def test_full_experiment_can_be_analyzed_and_exports_raw_trial_data(
         len((completed_experiment / "analysis/trials.csv").read_text().splitlines())
         == 10
     )
+
+
+def test_mixed_burst_experiment_compares_policies_and_reports_target_and_tradeoffs(
+    completed_experiment,
+):
+    path = completed_experiment.parent / "scheduling"
+    report = analyze_experiment(path)
+    assert report["eligible_comparison"] is True
+    assert report["target_class"] == "short"
+    assert len(report["paired_changes"]) == 4
+    assert "target_e2e_p95_ms_reduction_percent" in report["paired_changes"][0]
+    assert "long_e2e_p95_increase_percent" in report["paired_changes"][0]
+    assert all(
+        row["short_successful_requests"] == row["long_successful_requests"] == 4
+        for row in report["runs"]
+    )
+    assert report["variants"]["length-aware-c1"]["long_e2e_p95_ms"] is not None
 
 
 def test_changed_workload_cannot_be_compared(completed_experiment, tmp_path):

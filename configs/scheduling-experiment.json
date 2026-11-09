@@ -1,0 +1,28 @@
+{
+  "trials": 4,
+  "baseline": "fifo-c16",
+  "candidate": "length-aware-c16",
+  "target_class": "short",
+  "variants": [
+    {"name": "fifo-c16", "policy": "fifo", "concurrency": 16},
+    {"name": "length-aware-c16", "policy": "length-aware", "concurrency": 16, "aging_seconds": 30}
+  ],
+  "queue_size": 512,
+  "queue_timeout": 120,
+  "prompts_file": "data/mixed-prompts.jsonl",
+  "server_config": "configs/vllm.json",
+  "require_gpu_telemetry": true,
+  "workload": {
+    "mode": "burst",
+    "model": "qwen3-4b",
+    "requests": 300,
+    "burst_size": 60,
+    "burst_interval": 1,
+    "max_in_flight": 512,
+    "warmup": 32,
+    "max_tokens": 128,
+    "ignore_eos": true,
+    "seed": 0,
+    "timeout": 120
+  }
+}

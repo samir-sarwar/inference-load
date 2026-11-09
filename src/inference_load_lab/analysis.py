@@ -7,6 +7,8 @@ import math
 import statistics
 from pathlib import Path
 
+from inference_load_lab.cost import ESTIMATOR
+
 METRICS = {
     "e2e_p95_ms": ("e2e_ms", "p95"),
     "ttft_p95_ms": ("ttft_ms", "p95"),
@@ -21,10 +23,16 @@ MATCH_FIELDS = [
     "warmup",
     "max_tokens",
     "prompts",
+    "prompt_classes",
+    "prompt_max_tokens",
     "prompt_sha256",
     "seed",
     "timeout",
     "mode",
+    "request_rate",
+    "burst_size",
+    "burst_interval",
+    "max_in_flight",
     "temperature",
     "declared_server_config",
     "tpot_definition",
@@ -124,6 +132,21 @@ def analyze_experiment(root):
             issues.append(
                 label + ": generated token counts or request/prompt mapping changed"
             )
+        if config.get("prompt_classes"):
+            for record in records:
+                index = record["prompt_index"]
+                expected_budget = (
+                    config["prompt_max_tokens"][index] or config["max_tokens"]
+                )
+                if (
+                    record.get("workload_class") != config["prompt_classes"][index]
+                    or record.get("requested_max_tokens") != expected_budget
+                ):
+                    issues.append(
+                        label
+                        + ": recorded class or output budget differs from the workload"
+                    )
+                    break
         limit = variants[entry["variant"]].get("concurrency")
         managers = summary.get("request_manager_configs", [])
         if limit is None:
@@ -131,18 +154,25 @@ def analyze_experiment(root):
                 issues.append(
                     label + ": direct route unexpectedly reported admission settings"
                 )
-        elif managers != [
-            {
-                "policy": "fifo",
+        else:
+            policy = variants[entry["variant"]].get("policy", "fifo")
+            expected_manager = {
+                "policy": policy,
                 "concurrency_limit": limit,
                 "queue_capacity": spec["queue_size"],
                 "queue_timeout_s": spec["queue_timeout"],
                 "upstream_timeout_s": spec["workload"]["timeout"],
             }
-        ]:
-            issues.append(
-                label + ": observed gateway limit does not match the planned variant"
-            )
+            if policy == "length-aware":
+                expected_manager.update(
+                    aging_seconds=variants[entry["variant"]].get("aging_seconds", 10.0),
+                    cost_estimator=ESTIMATOR,
+                )
+            if managers != [expected_manager]:
+                issues.append(
+                    label
+                    + ": observed gateway limit does not match the planned variant"
+                )
         gpu = summary.get("gpu", {})
         gpu_ids = sorted(g["id"] for g in gpu.get("gpus", []))
         if spec.get("require_gpu_telemetry"):
@@ -173,6 +203,21 @@ def analyze_experiment(root):
             "output_dir": entry["output_dir"],
         }
         row.update({name: metric(summary, keys) for name, keys in METRICS.items()})
+        for cohort, values in summary.get("by_class", {}).items():
+            for name, keys in METRICS.items():
+                row[f"{cohort}_{name}"] = metric(values, keys)
+            row[f"{cohort}_queue_max_ms"] = values.get("queue_wait_ms", {}).get("max")
+            row[f"{cohort}_successful_requests"] = values["successful_requests"]
+            row[f"{cohort}_aged_promotions"] = sum(
+                r.get("aged_promotion") is True
+                for r in records
+                if r["phase"] == "measured" and r.get("workload_class") == cohort
+            )
+        target = spec.get("target_class")
+        if target and (
+            row.get(f"{target}_e2e_p95_ms") is None or row[f"{target}_e2e_p95_ms"] <= 0
+        ):
+            issues.append(label + ": target-class metrics are missing")
         if any(
             row[k] is None or row[k] <= 0
             for k in ["e2e_p95_ms", "tokens_per_second", "tpot_p50_ms"]
@@ -185,8 +230,17 @@ def analyze_experiment(root):
     for name in variants:
         runs = [r for r in rows if r["variant"] == name]
         aggregates[name] = {"trials": len(runs)}
-        for field in [*METRICS, "gpu_mean_util_percent"]:
-            values = [r[field] for r in runs if r[field] is not None]
+        extra_fields = {
+            key
+            for row in rows
+            for key in row
+            if any(
+                key.startswith(label + "_")
+                for label in reference_config.get("prompt_classes") or []
+            )
+        }
+        for field in [*METRICS, "gpu_mean_util_percent", *sorted(extra_fields)]:
+            values = [r[field] for r in runs if r.get(field) is not None]
             aggregates[name][field] = (
                 {
                     "median": statistics.median(values),
@@ -213,19 +267,46 @@ def analyze_experiment(root):
                     / base["tokens_per_second"],
                 }
             )
+            if spec.get("target_class"):
+                prefix = spec["target_class"]
+                for metric_name in ["e2e_p95_ms", "ttft_p95_ms"]:
+                    field = f"{prefix}_{metric_name}"
+                    pairs[-1][f"target_{metric_name}_reduction_percent"] = (
+                        100 * (base[field] - candidate[field]) / base[field]
+                    )
+                if base.get("long_e2e_p95_ms") and candidate.get("long_e2e_p95_ms"):
+                    pairs[-1]["long_e2e_p95_increase_percent"] = (
+                        100
+                        * (candidate["long_e2e_p95_ms"] - base["long_e2e_p95_ms"])
+                        / base["long_e2e_p95_ms"]
+                    )
     return {
         "eligible_comparison": not issues,
         "issues": issues,
         "baseline": spec["baseline"],
         "candidate": spec["candidate"],
-        "primary_metric": "per-run p95 client end-to-end latency",
+        "primary_metric": f"per-run p95 {spec['target_class']}-class client end-to-end latency"
+        if spec.get("target_class")
+        else "per-run p95 client end-to-end latency",
+        "target_class": spec.get("target_class"),
+        "workload_classes": sorted(set(reference_config.get("prompt_classes") or [])),
         "aggregation": "median of trial metrics; each paired change compares the same trial",
         "consistent_improvement_observed": bool(pairs)
         and all(
-            p["e2e_p95_reduction_percent"] > 0 and p["throughput_increase_percent"] >= 0
+            (
+                p["target_e2e_p95_ms_reduction_percent"] > 0
+                if spec.get("target_class")
+                else p["e2e_p95_reduction_percent"] > 0
+                and p["throughput_increase_percent"] >= 0
+            )
             for p in pairs
         ),
         "paired_changes": pairs,
+        "median_target_e2e_p95_reduction_percent": statistics.median(
+            p["target_e2e_p95_ms_reduction_percent"] for p in pairs
+        )
+        if pairs and spec.get("target_class")
+        else None,
         "median_paired_e2e_p95_reduction_percent": statistics.median(
             p["e2e_p95_reduction_percent"] for p in pairs
         )
@@ -252,7 +333,7 @@ def plot_results(root, output, report):
             "Plots require the analysis extra: uv sync --extra analysis"
         ) from exc
     names = list(report["variants"])
-    colors = ["#2563eb", "#ea580c", "#059669"]
+    colors = ["#2563eb", "#ea580c", "#059669", "#9333ea"]
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     for axis, field, label in zip(
         axes,
@@ -285,6 +366,8 @@ def plot_results(root, output, report):
     fig.suptitle("Controlled admission comparison · dots are trials, bars are medians")
     fig.savefig(output / "latency-throughput.png", dpi=180)
     plt.close(fig)
+    if report.get("target_class"):
+        plot_scheduling(Path(root), output, report, plt, colors)
     if not any(r["gpu_unique_samples"] for r in report["runs"]):
         return
     fig, axes = plt.subplots(
@@ -332,6 +415,104 @@ def plot_results(root, output, report):
     axes[0][0].set_ylabel("Runpod-reported GPU utilization (%)")
     axes[0][-1].legend(frameon=False)
     fig.savefig(output / "gpu-utilization.png", dpi=180)
+    plt.close(fig)
+
+
+def plot_scheduling(root, output, report, plt, colors):
+    names = list(report["variants"])
+    cohorts = report["workload_classes"]
+    fig, axes = plt.subplots(
+        1,
+        len(cohorts),
+        figsize=(5 * len(cohorts), 4),
+        squeeze=False,
+        layout="constrained",
+    )
+    for axis, cohort in zip(axes[0], cohorts):
+        field = f"{cohort}_e2e_p95_ms"
+        for index, name in enumerate(names):
+            rows = sorted(
+                (r for r in report["runs"] if r["variant"] == name),
+                key=lambda r: r["trial"],
+            )
+            for j, row in enumerate(rows):
+                axis.scatter(
+                    index + (j - (len(rows) - 1) / 2) * 0.06,
+                    row[field] / 1000,
+                    color=colors[j % len(colors)],
+                    s=45,
+                    label=f"Trial {j + 1}" if index == 0 else None,
+                )
+            axis.hlines(
+                report["variants"][name][field]["median"] / 1000,
+                index - 0.2,
+                index + 0.2,
+                color="#111827",
+                linewidth=2,
+            )
+        axis.set_xticks(range(len(names)), names)
+        axis.set_title(f"{cohort.capitalize()} requests")
+        axis.set_ylabel("p95 end-to-end latency (seconds)")
+        axis.set_ylim(bottom=0)
+        axis.grid(axis="y", alpha=0.2)
+        axis.spines[["top", "right"]].set_visible(False)
+    axes[0][0].legend(frameon=False)
+    fig.suptitle("Mixed burst workload · same concurrency and completed work")
+    fig.savefig(output / "class-latencies.png", dpi=180)
+    plt.close(fig)
+    fig, axes = plt.subplots(
+        1, len(names), figsize=(5 * len(names), 4), squeeze=False, layout="constrained"
+    )
+    for axis, name in zip(axes[0], names):
+        entry = next(
+            r for r in report["runs"] if r["trial"] == 1 and r["variant"] == name
+        )
+        path = run_directory(root, entry["output_dir"]) / "requests.jsonl"
+        records = [json.loads(line) for line in path.read_text().splitlines()]
+        records = [
+            r for r in records if r["phase"] == "measured" and r["status"] == "ok"
+        ]
+        arrivals = sorted(
+            {r["arrival_order"] for r in records if r.get("arrival_order") is not None}
+        )
+        admissions = sorted(
+            {
+                r["admission_order"]
+                for r in records
+                if r.get("admission_order") is not None
+            }
+        )
+        if not arrivals or not admissions:
+            continue
+        rank_in = {value: i + 1 for i, value in enumerate(arrivals)}
+        rank_out = {value: i + 1 for i, value in enumerate(admissions)}
+        for index, cohort in enumerate(cohorts):
+            group = [r for r in records if r["workload_class"] == cohort]
+            axis.scatter(
+                [rank_in[r["arrival_order"]] for r in group],
+                [rank_out[r["admission_order"]] for r in group],
+                color=colors[index % len(colors)],
+                s=10,
+                alpha=0.8,
+                label=cohort,
+            )
+        axis.plot(
+            [1, len(arrivals)],
+            [1, len(arrivals)],
+            linestyle="--",
+            color="#6b7280",
+            linewidth=1,
+        )
+        axis.set_title(name)
+        axis.set_xlabel("Arrival rank at gateway")
+        axis.set_ylabel("Admission rank at gateway")
+        axis.grid(alpha=0.15)
+        axis.spines[["top", "right"]].set_visible(False)
+        axis.legend(frameon=False)
+    fig.suptitle(
+        "Actual queue decisions · trial 1 · points below diagonal were admitted earlier"
+    )
+    fig.savefig(output / "admission-order.png", dpi=180)
     plt.close(fig)
 
 
