@@ -3,11 +3,12 @@
 A small LLM serving and benchmarking project built around vLLM.
 
 Compare streaming requests sent directly to a Qwen model on a Runpod GPU Pod
-with requests admitted through a bounded FIFO gateway.
+with requests admitted through a bounded gateway using FIFO or length-aware
+scheduling.
 
 ```mermaid
 flowchart LR
-    L[Python load generator] -->|managed requests| Q[Bounded FIFO gateway]
+    L[Python load generator] -->|managed requests| Q[FIFO or length-aware gateway]
     Q --> V[vLLM · Qwen on one GPU]
     L -->|direct baseline| V
     L --> R[Request records and benchmark summaries]
@@ -192,9 +193,9 @@ is not a latency or the total drain time. A configured request rate is a target,
 not a guarantee that a saturated client dispatched on time. Check the recorded
 lag rather than inferring arrival accuracy from completion throughput.
 
-## FIFO request manager
+## FIFO request manager (default)
 
-The gateway queues incoming chat-completion requests in FIFO order and admits at
+By default, the gateway queues chat-completion requests in FIFO order and admits at
 most a configured number of active requests to **one** upstream vLLM server. An
 active slot is held until the upstream response is closed, including its stream.
 FIFO controls admission order; responses can finish in a different order.
@@ -264,6 +265,71 @@ the upstream model list. `POST /v1/chat/completions` supports streamed and ordin
 JSON responses. The gateway uses one process with an in-memory queue; it does not
 route work across multiple model servers. Ctrl+C allows up to ten seconds for
 graceful shutdown before outstanding requests are cancelled.
+
+## Length-aware scheduling
+
+An optional policy selects the queued request with the smallest estimated cost.
+Equal costs retain arrival order. Once a request has waited for the configured
+aging threshold, aged requests are admitted in arrival order ahead of ordinary
+cost-based work. Requests already running keep their slots until their streams
+finish; this policy changes admission order.
+
+```bash
+uv run --env-file .env.local inference-load-lab serve \
+  --policy length-aware --aging-seconds 30 \
+  --concurrency 16 --queue-size 512 --queue-timeout 120 --upstream-timeout 120
+```
+
+The cost proxy is `ceil(UTF-8 message-content bytes / 4) + output-token budget`.
+This is a cheap ordering heuristic, not the model's tokenizer or a prediction of
+the actual completion length. It uses `max_completion_tokens` when present,
+otherwise `max_tokens`; missing budgets receive a conservative cost of 4096
+output tokens. The policy supports string text-message content and rejects
+unsupported content before admission. FIFO preserves its existing pass-through
+behavior. The default aging threshold is 10 seconds; it must be less than the
+queue timeout. The controlled experiment below uses 30 seconds.
+
+Promotion changes which waiting ticket wins the next free slot. It does not
+guarantee admission exactly at the threshold: active streams and older promoted
+requests can still be ahead. The queue remains bounded, and timeout, cancellation,
+disconnect handling, and stream-lifetime slot ownership apply to both policies.
+Successful responses carry arrival/admission order, estimated cost, and whether
+aging promoted the request. These are saved with the benchmark records.
+
+Mixed-workload JSONL can specify each prompt's class and output budget:
+
+```json
+{"prompt":"Define KV caching.","class":"short","max_tokens":32}
+{"prompt":"Explain an inference server in detail.","class":"long","max_tokens":512}
+```
+
+An entry's budget overrides `--max-tokens`; absent budgets use the CLI default.
+The included `data/mixed-prompts.jsonl` contains eight short and two long entries.
+Class summaries use only measured records and report latency, queue wait, token
+counts, failures, drops, and aging promotions. Each class's throughput uses the
+same full-run wall-time denominator as overall throughput.
+
+```bash
+uv run --env-file .env.local inference-load-lab experiment \
+  --config configs/scheduling-experiment.json --gpu-pod-id YOUR_POD_ID \
+  --output-dir results/scheduling-comparison
+
+uv run --extra analysis inference-load-lab analyze results/scheduling-comparison
+```
+
+This comparison holds admission concurrency at 16 for both policies. It uses
+four paired trials, two in each order. Each run schedules 300 arrivals as five
+bursts of 60, one second apart: 240 short requests generating 32 tokens and
+60 long requests generating 512 tokens. `ignore_eos=true` fixes those decode
+lengths for 38,400 measured tokens per run. The driver cap and queue capacity
+are both 512. Each run has 32 excluded warmups.
+
+The prespecified target is short-request p95 end-to-end latency. The analyzer
+reports changes for short requests alongside long-request latency and overall
+throughput. A targeted latency improvement can have a throughput or long-request
+trade-off; it is reported separately from the earlier uniform-workload admission
+concurrency experiment. `class-latencies.png` shows both classes and
+`admission-order.png` shows actual arrival and admission ranks.
 
 ## GPU utilization
 
