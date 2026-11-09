@@ -43,6 +43,8 @@ class BenchmarkConfig:
     burst_interval: float = 1.0
     max_in_flight: int = 128
     ignore_eos: bool = False
+    prompt_classes: tuple[str, ...] = ()
+    prompt_max_tokens: tuple[int | None, ...] = ()
 
     def __post_init__(self):
         if self.requests < 1 or self.max_tokens < 1:
@@ -72,6 +74,24 @@ class BenchmarkConfig:
             raise ValueError("--timeout must be a finite positive number.")
         if not self.prompts or any(not p.strip() for p in self.prompts):
             raise ValueError("Provide at least one nonempty prompt.")
+        if self.prompt_classes and (
+            len(self.prompt_classes) != len(self.prompts)
+            or any(
+                not isinstance(label, str)
+                or not label
+                or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789-_" for c in label)
+                for label in self.prompt_classes
+            )
+        ):
+            raise ValueError("Provide one lowercase class label per prompt.")
+        if self.prompt_max_tokens and (
+            len(self.prompt_max_tokens) != len(self.prompts)
+            or any(
+                value is not None and (type(value) is not int or value < 1)
+                for value in self.prompt_max_tokens
+            )
+        ):
+            raise ValueError("Provide one positive output budget (or null) per prompt.")
         url = httpx.URL(self.base_url)
         if url.scheme not in ("http", "https") or not url.host:
             raise ValueError("--base-url must be an absolute HTTP or HTTPS URL.")
@@ -79,6 +99,14 @@ class BenchmarkConfig:
             raise ValueError(
                 "--base-url cannot contain credentials, a query, or a fragment."
             )
+
+    def output_budget(self, index):
+        return (
+            self.prompt_max_tokens[index] if self.prompt_max_tokens else None
+        ) or self.max_tokens
+
+    def workload_class(self, index):
+        return self.prompt_classes[index] if self.prompt_classes else "default"
 
 
 def percentile(values: list[float], fraction: float) -> float | None:
@@ -92,7 +120,7 @@ def percentile(values: list[float], fraction: float) -> float | None:
     return ordered[lower] + (ordered[upper] - ordered[lower]) * (index - lower)
 
 
-def summarize(records: list[dict], duration: float) -> dict:
+def summarize(records: list[dict], duration: float, *, include_classes=True) -> dict:
     successful = [r for r in records if r["status"] == "ok"]
     latencies = [r["e2e_ms"] for r in successful]
     ttfts = [r["ttft_ms"] for r in successful if r["ttft_ms"] is not None]
@@ -118,7 +146,7 @@ def summarize(records: list[dict], duration: float) -> dict:
         if successful and not missing_usage
         else None
     )
-    return {
+    result = {
         "recorded_requests": len(records),
         "completed_requests": len(attempted),
         "successful_requests": len(successful),
@@ -170,19 +198,41 @@ def summarize(records: list[dict], duration: float) -> dict:
             "p50": percentile(queue_waits, 0.5),
             "p95": percentile(queue_waits, 0.95),
             "samples": len(queue_waits),
+            "max": max(queue_waits) if queue_waits else None,
         },
         "total_output_tokens": tokens,
         "output_tokens_per_second": tokens / duration if tokens is not None else None,
         "successful_requests_per_second": len(successful) / duration,
+        "aged_promotions": sum(r.get("aged_promotion") is True for r in successful),
     }
+    if include_classes:
+        result["by_class"] = {
+            label: summarize(
+                [r for r in records if r.get("workload_class", "default") == label],
+                duration,
+                include_classes=False,
+            )
+            for label in sorted({r.get("workload_class", "default") for r in records})
+        }
+    return result
 
 
-def request_record(concurrency, phase, request_id, prompt_index, scheduled_offset=None):
+def request_record(
+    concurrency,
+    phase,
+    request_id,
+    prompt_index,
+    scheduled_offset=None,
+    workload_class="default",
+    requested_max_tokens=None,
+):
     return {
         "concurrency": concurrency,
         "phase": phase,
         "request_id": request_id,
         "prompt_index": prompt_index,
+        "workload_class": workload_class,
+        "requested_max_tokens": requested_max_tokens,
         "scheduled_offset_s": scheduled_offset,
         "started_offset_s": None,
         "status": "error",
@@ -197,6 +247,10 @@ def request_record(concurrency, phase, request_id, prompt_index, scheduled_offse
         "e2e_ms": None,
         "dispatch_lag_ms": None,
         "arrival_e2e_ms": None,
+        "arrival_order": None,
+        "admission_order": None,
+        "aged_promotion": None,
+        "estimated_cost": None,
     }
 
 
@@ -214,7 +268,13 @@ async def perform_request(
 ):
     request_started = perf_counter()
     record = request_record(
-        concurrency, phase, request_id, prompt_index, scheduled_offset
+        concurrency,
+        phase,
+        request_id,
+        prompt_index,
+        scheduled_offset,
+        config.workload_class(prompt_index),
+        config.output_budget(prompt_index),
     )
     record["started_offset_s"] = request_started - started
     if scheduled_offset is not None:
@@ -229,13 +289,22 @@ async def perform_request(
                 model=config.model,
                 prompt=config.prompts[prompt_index],
                 api_key=api_key,
-                max_tokens=config.max_tokens,
+                max_tokens=config.output_budget(prompt_index),
                 ignore_eos=config.ignore_eos,
             )
         record.update(
             status="ok",
             http_status=200,
             tpot_ms=result.get("tpot_ms"),
+            **{
+                field: result.get(field)
+                for field in [
+                    "arrival_order",
+                    "admission_order",
+                    "aged_promotion",
+                    "estimated_cost",
+                ]
+            },
             queue_wait_ms=result.get("queue_wait_ms"),
             request_manager=result.get("request_manager"),
             **{
@@ -318,7 +387,13 @@ async def run_arrival_batch(client, config, api_key, schedule, records):
 
     def drop(request_id, offset, started):
         record = request_record(
-            None, "measured", request_id, schedule[request_id], offset
+            None,
+            "measured",
+            request_id,
+            schedule[request_id],
+            offset,
+            config.workload_class(schedule[request_id]),
+            config.output_budget(schedule[request_id]),
         )
         record.update(
             status="dropped",
@@ -507,8 +582,10 @@ async def run_suite(
     return report
 
 
-def load_prompts(path: Path) -> tuple[str, ...]:
+def load_workload(path: Path) -> dict:
     prompts = []
+    classes = []
+    budgets = []
     for number, line in enumerate(path.read_text().splitlines(), 1):
         if not line.strip():
             continue
@@ -522,9 +599,29 @@ def load_prompts(path: Path) -> tuple[str, ...]:
                 f'{path}:{number}: expected a nonempty string or {{"prompt": "..."}}.'
             )
         prompts.append(prompt)
+        label = value.get("class", "default") if isinstance(value, dict) else "default"
+        budget = value.get("max_tokens") if isinstance(value, dict) else None
+        if (
+            not isinstance(label, str)
+            or not label
+            or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789-_" for c in label)
+        ):
+            raise ValueError(f"{path}:{number}: invalid workload class.")
+        if budget is not None and (type(budget) is not int or budget <= 0):
+            raise ValueError(f"{path}:{number}: output budget must be positive.")
+        classes.append(label)
+        budgets.append(budget)
     if not prompts:
         raise ValueError(f"{path}: no prompts found.")
-    return tuple(prompts)
+    return {
+        "prompts": tuple(prompts),
+        "prompt_classes": tuple(classes),
+        "prompt_max_tokens": tuple(budgets),
+    }
+
+
+def load_prompts(path: Path) -> tuple[str, ...]:
+    return load_workload(path)["prompts"]
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -635,6 +732,11 @@ def main(argv: list[str] | None = None) -> None:
     ):
         parser.error("Burst options require --mode burst.")
     try:
+        prompt_settings = (
+            load_workload(args.prompts_file)
+            if args.prompts_file
+            else {"prompts": tuple(args.prompt or [DEFAULT_PROMPT])}
+        )
         config = BenchmarkConfig(
             base_url=args.base_url.rstrip("/"),
             model=args.model,
@@ -644,9 +746,7 @@ def main(argv: list[str] | None = None) -> None:
             else (),
             warmup=args.warmup,
             max_tokens=args.max_tokens,
-            prompts=load_prompts(args.prompts_file)
-            if args.prompts_file
-            else tuple(args.prompt or [DEFAULT_PROMPT]),
+            **prompt_settings,
             seed=args.seed,
             timeout=args.timeout,
             mode=args.mode,

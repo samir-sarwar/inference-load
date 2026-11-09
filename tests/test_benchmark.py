@@ -13,6 +13,7 @@ import pytest
 from inference_load_lab.benchmark import (
     BenchmarkConfig,
     load_prompts,
+    load_workload,
     percentile,
     run_suite,
     summarize,
@@ -294,7 +295,35 @@ def test_queue_wait_summary_distinguishes_measured_and_unavailable_values():
         for value in [5, 15, None]
     ]
     result = summarize(records, duration=1)
-    assert result["queue_wait_ms"] == {"p50": 10, "p95": 14.5, "samples": 2}
+    assert result["queue_wait_ms"] == {"p50": 10, "p95": 14.5, "samples": 2, "max": 15}
+
+
+@pytest.mark.asyncio
+async def test_mixed_workload_sends_requested_budgets_and_reports_each_class(tmp_path):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text(
+        '{"prompt":"short","class":"short","max_tokens":3}\n{"prompt":"long","class":"long","max_tokens":12}\n'
+    )
+    settings = load_workload(path)
+    calls = []
+
+    def respond(request):
+        payload = json.loads(request.content)
+        calls.append(payload["max_tokens"])
+        return httpx.Response(200, text=stream(payload["max_tokens"]))
+
+    config = BenchmarkConfig(
+        "https://example.test", **settings, requests=8, warmup=2, concurrencies=(2,)
+    )
+    async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+        report = await run_suite(client, config, "key", tmp_path / "run")
+    row = report["runs"][0]
+    assert calls.count(3) == calls.count(12) == 5
+    assert row["by_class"]["short"]["successful_requests"] == 4
+    assert row["by_class"]["long"]["total_output_tokens"] == 48
+    assert row["total_output_tokens"] == 60
+    records = read_records(tmp_path / "run")
+    assert all(r["requested_max_tokens"] in {3, 12} for r in records)
 
 
 @pytest.mark.parametrize(

@@ -1,0 +1,10 @@
+{"class":"short","max_tokens":32,"prompt":"Define KV caching in one sentence."}
+{"class":"short","max_tokens":32,"prompt":"Define time to first token in one sentence."}
+{"class":"short","max_tokens":32,"prompt":"Explain continuous batching in one sentence."}
+{"class":"short","max_tokens":32,"prompt":"What does a FIFO queue do? Give a brief answer."}
+{"class":"short","max_tokens":32,"prompt":"Define GPU memory bandwidth in one sentence."}
+{"class":"short","max_tokens":32,"prompt":"What is request throughput? Answer briefly."}
+{"class":"short","max_tokens":32,"prompt":"Explain tail latency in one sentence."}
+{"class":"short","max_tokens":32,"prompt":"What does backpressure do in a server? Answer briefly."}
+{"class":"long","max_tokens":512,"prompt":"Explain how an LLM inference server works from receiving an HTTP request through tokenization, prefill, continuous batching, KV-cache allocation, autoregressive decoding, streaming, and cleanup. Describe how concurrency, token budgets, queueing, GPU memory bandwidth, cancellation, and timeouts affect latency and throughput. Use a detailed technical explanation with concrete examples."}
+{"class":"long","max_tokens":512,"prompt":"Explain the design of a production LLM serving benchmark in detail. Discuss closed-loop clients, independent arrival schedules, warmup, output lengths, seeded prompt order, first-token timing, time per output token, percentile latency, throughput denominators, overload rejection, queue fairness, GPU sampling, and controlled comparisons. Include examples of misleading measurements and how to avoid them."}
